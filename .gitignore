@@ -1,0 +1,14 @@
+.config/emacs/diary
+.config/emacs/etc/*
+history
+.config/emacs/var/*
+.config/emacs/session*
+.config/emacs/.lsp-session-v1
+.config/emacs/custom-vars.el
+.config/emacs/ido*
+.config/emacs/places
+.config/emacs/recentf*
+.config/emacs/*~
+.config/emacs/straight/*
+.config/emacs/auto-save-list/
+.config/emacs/projectile-bookmarks.eld
