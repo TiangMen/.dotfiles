@@ -394,45 +394,44 @@ Easy in and out text
 ** TODO Python 
 #+begin_src emacs-lisp
 
-(use-package lsp-python-ms
-  :ensure t
-  :init (setq lsp-python-ms-auto-install-server t)
-  :hook (python-mode . (lambda ()
-                          (require 'lsp-python-ms)
-                          (lsp))))  ; or lsp-deferred
+  (use-package lsp-pyright
+    :ensure t
+    :hook (python-mode . (lambda ()
+                            (require 'lsp-pyright)
+                            (lsp))))  ; or lsp-deferred
 
-(use-package pyvenv
-  :ensure t
-  :init
-  (setenv "WORKON_HOME" "~/.venvs/")
-  :config
-  ;; (pyvenv-mode t)
+  (use-package pyvenv
+    :ensure t
+    :init
+    (setenv "WORKON_HOME" "~/.venvs/")
+    :config
+    ;; (pyvenv-mode t)
 
-  ;; Set correct Python interpreter
-  (setq pyvenv-post-activate-hooks
-        (list (lambda ()
-                (setq python-shell-interpreter (concat pyvenv-virtual-env "bin/python")))))
-  (setq pyvenv-post-deactivate-hooks
-        (list (lambda ()
-                (setq python-shell-interpreter "python3")))))
+    ;; Set correct Python interpreter
+    (setq pyvenv-post-activate-hooks
+          (list (lambda ()
+                  (setq python-shell-interpreter (concat pyvenv-virtual-env "bin/python")))))
+    (setq pyvenv-post-deactivate-hooks
+          (list (lambda ()
+                  (setq python-shell-interpreter "python3")))))
 
-(use-package blacken
-  :init
-  (setq-default blacken-fast-unsafe t)
-  (setq-default blacken-line-length 80)
-  )
-(use-package python-mode
-  :hook
-  (python-mode . pyvenv-mode)
-  (python-mode . flycheck-mode)
-  (python-mode . company-mode)
-  (python-mode . blacken-mode)
-  (python-mode . yas-minor-mode)
-  :custom
-  ;; NOTE: Set these if Python 3 is called "python3" on your system!
-  (python-shell-interpreter "python3")
-  :config
-  )
+  (use-package blacken
+    :init
+    (setq-default blacken-fast-unsafe t)
+    (setq-default blacken-line-length 80)
+    )
+  (use-package python-mode
+    :hook
+    (python-mode . pyvenv-mode)
+    (python-mode . flycheck-mode)
+    (python-mode . company-mode)
+    (python-mode . blacken-mode)
+    (python-mode . yas-minor-mode)
+    :custom
+    ;; NOTE: Set these if Python 3 is called "python3" on your system!
+    (python-shell-interpreter "python3")
+    :config
+    )
 #+end_src
 
 #+begin_src emacs-lisp

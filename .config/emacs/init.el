@@ -311,11 +311,10 @@
   (prescient-persist-mode)
   )
 
-(use-package lsp-python-ms
+(use-package lsp-pyright
   :ensure t
-  :init (setq lsp-python-ms-auto-install-server t)
   :hook (python-mode . (lambda ()
-                          (require 'lsp-python-ms)
+                          (require 'lsp-pyright)
                           (lsp))))  ; or lsp-deferred
 
 (use-package pyvenv
