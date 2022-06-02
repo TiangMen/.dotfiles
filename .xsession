@@ -2,7 +2,7 @@
 # Source .profile
 . ~/.profile
 GUIX_PROFILE="/home/user/.guix-profile"
-    . "$GUIX_PROFILE/etc/profile"
+. "$GUIX_PROFILE/etc/profile"
 # Disable access control for the current user
 xhost +SI:localuser:$USER
 

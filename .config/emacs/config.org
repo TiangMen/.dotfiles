@@ -746,7 +746,6 @@ Easy in and out text
 
 #+end_src
 
-
 * Magit
 #+begin_src emacs-lisp
 (use-package magit

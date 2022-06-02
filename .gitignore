@@ -12,3 +12,4 @@ history
 .config/emacs/straight/*
 .config/emacs/auto-save-list/
 .config/emacs/projectile-bookmarks.eld
+.config/emacs/elpa/
