@@ -187,12 +187,6 @@ We use the desktop-environment package to automatically bind to well-known progr
   (add-hook 'exwm-manage-finish-hook #'efs/configure-window-by-class)
 #+end_src
 
-** Workspaces for specific programs
-
-#+begin_src emacs-lisp
-
-#+end_src
-
 ** Automatically move windows between workspaces
 #+begin_src emacs-lisp
 ;; Automatically move EXWM buffer to current workspace when selected
