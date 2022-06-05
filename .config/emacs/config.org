@@ -762,3 +762,38 @@
   :after magit)
 #+end_src
 
+
+* Window
+** Scaling text
+#+begin_src emacs-lisp
+(use-package default-text-scale
+  :defer 1
+  :config
+  (default-text-scale-mode))
+#+end_src
+
+** Remembering window history
+#+begin_src emacs-lisp
+
+  (use-package winner
+    :after evil
+    :config
+    (winner-mode))
+#+end_src
+
+** Doom Window Keybindings
+#+begin_src emacs-lisp
+
+      (rune/leader-keys
+          "w"  '(:ignore t :which-key "evil window")
+          "ws" 'evil-window-split
+          "wv" 'evil-window-vsplit
+          "ww" 'evil-window-next
+          "wo" 'delete-other-windows
+          "wq" 'evil-quit
+          "wu" 'winner-undo ;; pop in and out of window history
+          "wU" 'winner-redo ;; pop in and out of window history
+  ) 
+
+#+end_src
+

@@ -597,3 +597,24 @@
 
 (use-package evil-magit
   :after magit)
+
+(use-package default-text-scale
+  :defer 1
+  :config
+  (default-text-scale-mode))
+
+(use-package winner
+  :after evil
+  :config
+  (winner-mode))
+
+(rune/leader-keys
+        "w"  '(:ignore t :which-key "evil window")
+        "ws" 'evil-window-split
+        "wv" 'evil-window-vsplit
+        "ww" 'evil-window-next
+        "wo" 'delete-other-windows
+        "wq" 'evil-quit
+        "wu" 'winner-undo ;; pop in and out of window history
+        "wU" 'winner-redo ;; pop in and out of window history
+)
