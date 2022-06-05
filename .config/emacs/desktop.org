@@ -5,9 +5,11 @@
   - [ ] fix the keybindings
   - [ ] setup polybar
 
+
 ** Init Hook
 
 #+begin_src emacs-lisp
+
 
   (defun efs/run-in-background (command)
     (let ((command-parts (split-string command "[ ]+")))
@@ -82,6 +84,7 @@
   (add-hook 'exwm-workspace-switch-hook #'efs/send-polybar-exwm-workspace)
 
 #+end_src
+
 
 ** use-package exwm
 #+begin_src emacs-lisp
@@ -158,6 +161,7 @@
     (exwm-enable))
 #+end_src
 
+
 * Desktop Key Bindings
 We use the desktop-environment package to automatically bind to well-known programs for controlling the volume, screen brightness, media playback, and doing other things like locking the screen and taking screenshots.
 
@@ -170,4 +174,30 @@ We use the desktop-environment package to automatically bind to well-known progr
     (desktop-environment-brightness-small-decrement "2%-")
     (desktop-environment-brightness-normal-increment "5%+")
     (desktop-environment-brightness-normal-decrement "5%-"))
+#+end_src
+
+* Window Placement
+
+#+begin_src emacs-lisp
+(defun efs/configure-window-by-class ()
+  (interactive)
+  (message "Window '%s' appeared!" exwm-class))
+
+  ;; Configure windows as they're created
+  (add-hook 'exwm-manage-finish-hook #'efs/configure-window-by-class)
+#+end_src
+
+** Workspaces for specific programs
+
+#+begin_src emacs-lisp
+
+#+end_src
+
+** Automatically move windows between workspaces
+#+begin_src emacs-lisp
+;; Automatically move EXWM buffer to current workspace when selected
+(setq exwm-layout-show-all-buffers t)
+
+;; Display all EXWM buffers in every workspace buffer list
+(setq exwm-workspace-show-all-buffers t)
 #+end_src

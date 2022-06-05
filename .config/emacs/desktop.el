@@ -143,3 +143,18 @@
   (desktop-environment-brightness-small-decrement "2%-")
   (desktop-environment-brightness-normal-increment "5%+")
   (desktop-environment-brightness-normal-decrement "5%-"))
+
+(defun efs/configure-window-by-class ()
+  (interactive)
+  (message "Window '%s' appeared!" exwm-class))
+
+  ;; Configure windows as they're created
+  (add-hook 'exwm-manage-finish-hook #'efs/configure-window-by-class)
+
+
+
+;; Automatically move EXWM buffer to current workspace when selected
+(setq exwm-layout-show-all-buffers t)
+
+;; Display all EXWM buffers in every workspace buffer list
+(setq exwm-workspace-show-all-buffers t)
