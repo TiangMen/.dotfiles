@@ -148,8 +148,13 @@
   (interactive)
   (message "Window '%s' appeared!" exwm-class))
 
-  ;; Configure windows as they're created
-  (add-hook 'exwm-manage-finish-hook #'efs/configure-window-by-class)
+;; Configure windows as they're created
+(add-hook 'exwm-manage-finish-hook #'efs/configure-window-by-class)
+
+;; Make buffer name more meaningful
+(add-hook 'exwm-update-class-hook
+          (lambda ()
+            (exwm-workspace-rename-buffer exwm-class-name)))
 
 ;; Automatically move EXWM buffer to current workspace when selected
 (setq exwm-layout-show-all-buffers t)

@@ -97,6 +97,11 @@
     (setq projectile-project-search-path '("~/Projects/Code")))
   (setq projectile-switch-project-action #'projectile-dired))
 
+(use-package counsel-projectile
+    :after projectile
+    :config
+    (counsel-projectile-mode 1))
+
 (use-package general
     :config
     (general-evil-setup t)
@@ -244,6 +249,9 @@
     :config
     (setq org-ellipsis " ▾")
 (efs/org-font-setup))
+
+(setq org-directory "~/Projects/Code/OrgFiles")
+(setq org-agenda-files '("Tasks.org"))
 
 (use-package all-the-icons)
 
@@ -572,17 +580,6 @@
   (elcord-display-buffer-details nil)
   :config
   (elcord-mode))
-
-(use-package guix
-  :defer t)
-
-(rune/leader-keys
-  "G"  '(:ignore t :which-key "Guix")
-  "Gg" '(guix :which-key "Guix")
-  "Gi" '(guix-installed-user-packages :which-key "user packages")
-  "GI" '(guix-installed-system-packages :which-key "system packages")
-  "Gp" '(guix-packages-by-name :which-key "search packages")
-  "GP" '(guix-pull :which-key "pull"))
 
 (use-package elfeed
   :commands elfeed

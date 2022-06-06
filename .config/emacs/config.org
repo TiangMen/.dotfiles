@@ -119,6 +119,13 @@
     (setq projectile-project-search-path '("~/Projects/Code")))
   (setq projectile-switch-project-action #'projectile-dired))
 #+end_src
+** Counsel Projectile
+#+begin_src emacs-lisp
+(use-package counsel-projectile
+    :after projectile
+    :config
+    (counsel-projectile-mode 1))
+#+end_src
 * TODO Keybindings
 - [ ] fix the keybindings for the windows  
 **  General 
@@ -298,19 +305,25 @@
 
 ** foo
 #+begin_src emacs-lisp
-(defun efs/org-mode-setup ()
-    (org-indent-mode)
-    (variable-pitch-mode 1)
-    (visual-line-mode 1))
 
-(use-package org :straight (:type built-in)
-    :commands (org-capture org-agenda)
-    :hook (org-mode . efs/org-mode-setup)
-    :config
-    (setq org-ellipsis " ▾")
-(efs/org-font-setup))
+    (defun efs/org-mode-setup ()
+        (org-indent-mode)
+        (variable-pitch-mode 1)
+        (visual-line-mode 1))
+
+    (use-package org :straight (:type built-in)
+        :commands (org-capture org-agenda)
+        :hook (org-mode . efs/org-mode-setup)
+        :config
+        (setq org-ellipsis " ▾")
+    (efs/org-font-setup))
 #+end_src
 
+* Org Agenda
+#+begin_src emacs-lisp
+  (setq org-directory "~/Projects/Code/OrgFiles")
+  (setq org-agenda-files '("Tasks.org"))
+#+end_src
 * Modeline
 #+begin_src emacs-lisp
 (use-package all-the-icons)
@@ -323,8 +336,6 @@
 * TODO Development
 ** TODO LSP
 #+begin_src emacs-lisp
-
-
 
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
@@ -726,21 +737,6 @@
   (elcord-mode))
 #+end_src
 
-* System Utilities
-** GUIX
-#+begin_src emacs-lisp
-(use-package guix
-  :defer t)
-
-(rune/leader-keys
-  "G"  '(:ignore t :which-key "Guix")
-  "Gg" '(guix :which-key "Guix")
-  "Gi" '(guix-installed-user-packages :which-key "user packages")
-  "GI" '(guix-installed-system-packages :which-key "system packages")
-  "Gp" '(guix-packages-by-name :which-key "search packages")
-  "GP" '(guix-pull :which-key "pull"))
-#+end_src
-
 * Elfeed
 #+begin_src emacs-lisp
   (use-package elfeed
@@ -761,7 +757,6 @@
 (use-package evil-magit
   :after magit)
 #+end_src
-
 
 * Window
 ** Scaling text
@@ -796,4 +791,5 @@
   ) 
 
 #+end_src
+
 
