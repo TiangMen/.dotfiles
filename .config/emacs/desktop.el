@@ -161,3 +161,6 @@
 
 ;; Display all EXWM buffers in every workspace buffer list
 (setq exwm-workspace-show-all-buffers t)
+
+(pcase exwm-class-name
+  ("discord" (exwm-workspace-move-window 0)))
