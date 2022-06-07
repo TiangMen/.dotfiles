@@ -1,6 +1,5 @@
 (setq gc-cons-threshold (* 100 1024 1024)) ;; 100 MB
 (setq read-process-output-max (* 1 1024 1024)) ;; 1 MB
-;; hello
 
 ;; The default is 800 kilobytes.  Measured in bytes.
     (setq inhibit-startup-message t)
@@ -253,6 +252,9 @@
 (setq org-directory "~/Projects/Code/OrgFiles")
 (setq org-agenda-files '("Tasks.org"))
 
+(use-package org-make-toc
+  :hook (org-mode . org-make-toc-mode))
+
 (use-package all-the-icons)
 
 (use-package doom-modeline
@@ -398,6 +400,14 @@
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
+
+(use-package rainbow-mode
+  :defer t
+  :hook (org-mode
+         emacs-lisp-mode
+         web-mode
+         typescript-mode
+         js2-mode))
 
 (use-package olivetti
 :diminish
@@ -599,6 +609,8 @@
   :defer 1
   :config
   (default-text-scale-mode))
+
+(use-package bufler)
 
 (use-package winner
   :after evil

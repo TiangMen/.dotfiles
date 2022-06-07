@@ -1,10 +1,73 @@
-#+PROPERTY: header-args:emacs-lisp :tangle ./init.el :mkdirp yes :toc:
-  
+#+PROPERTY: header-args:emacs-lisp :tangle ./init.el :mkdirp yes 
+
+* Table of Contents
+:PROPERTIES:
+:TOC:      :include all
+:END:
+
+
+:CONTENTS:
+- [[#table-of-contents][Table of Contents]]
+- [[#faster-startup][Faster Startup]]
+- [[#default-settings][Default Settings]]
+- [[#package-management][Package Management]]
+- [[#basic-ui][Basic UI]]
+  - [[#dashboard][Dashboard]]
+- [[#projectile][Projectile]]
+  - [[#counsel-projectile][Counsel Projectile]]
+- [[#keybindings][Keybindings]]
+  - [[#general][General]]
+  - [[#evil-mode][Evil Mode]]
+  - [[#key-chord][Key-Chord]]
+  - [[#which-key][Which Key]]
+  - [[#multi-cursors][multi-cursors]]
+  - [[#increase-decrease-text][increase decrease text]]
+- [[#org-babel][Org Babel]]
+- [[#org-rice][Org Rice]]
+  - [[#better-font-faces][Better Font faces]]
+  - [[#center-the-org-buffer][Center the Org Buffer]]
+  - [[#foo][foo]]
+- [[#org-agenda][Org Agenda]]
+  - [[#update-contents-on-save][Update Contents on Save]]
+- [[#modeline][Modeline]]
+- [[#development][Development]]
+  - [[#lsp][LSP]]
+  - [[#python][Python]]
+  - [[#go][Go]]
+  - [[#yasnippet][Yasnippet]]
+  - [[#commenting][Commenting]]
+  - [[#flyspell][Flyspell]]
+  - [[#rainbow-delimiters][Rainbow Delimiters]]
+  - [[#latex][Latex]]
+    - [[#balance-window-margins][Balance window margins]]
+    - [[#foldingunfolding-like-0rg-mode][folding/unfolding like 0rg-mode]]
+    - [[#auctex][Auctex]]
+- [[#dired][Dired]]
+  - [[#file-icons][File Icons]]
+  - [[#hide-dotfiles][Hide Dotfiles]]
+- [[#emacs-completions][Emacs Completions]]
+- [[#twittering-mode][Twittering Mode]]
+- [[#clean-folders][Clean folders]]
+- [[#pdf][PDF]]
+- [[#emacs-client][Emacs client]]
+- [[#terminal-mode][Terminal Mode]]
+  - [[#eshell][eshell]]
+  - [[#vterm][vterm]]
+- [[#discord][Discord]]
+- [[#elfeed][Elfeed]]
+- [[#magit][Magit]]
+- [[#window][Window]]
+  - [[#scaling-text][Scaling text]]
+  - [[#bufler][Bufler]]
+  - [[#remembering-window-history][Remembering window history]]
+  - [[#doom-window-keybindings][Doom Window Keybindings]]
+:END:
+
 * Faster Startup 
+
 #+begin_src emacs-lisp
-(setq gc-cons-threshold (* 100 1024 1024)) ;; 100 MB
-(setq read-process-output-max (* 1 1024 1024)) ;; 1 MB
-;; hello
+  (setq gc-cons-threshold (* 100 1024 1024)) ;; 100 MB
+  (setq read-process-output-max (* 1 1024 1024)) ;; 1 MB
 #+end_src
 
 * Default Settings
@@ -83,7 +146,8 @@
 
   #+end_src
 
-* Dashboard
+* Basic UI 
+** Dashboard
 #+begin_src emacs-lisp
 
     ;; Or if you use use-package
@@ -94,7 +158,6 @@
 
   (setq dashboard-startup-banner "~/flex/example.png")
 #+end_src
-* Basic UI 
 #+begin_src emacs-lisp
 
   (column-number-mode)
@@ -174,7 +237,6 @@
           :ensure t
           :config
           (evil-collection-init))
-
 
 #+end_src
 ** Key-Chord
@@ -323,6 +385,11 @@
 #+begin_src emacs-lisp
   (setq org-directory "~/Projects/Code/OrgFiles")
   (setq org-agenda-files '("Tasks.org"))
+#+end_src
+** Update Contents on Save 
+#+begin_src emacs-lisp
+(use-package org-make-toc
+  :hook (org-mode . org-make-toc-mode))
 #+end_src
 * Modeline
 #+begin_src emacs-lisp
@@ -501,12 +568,20 @@
   )
 #+end_src
 
+
 ** Rainbow Delimiters
 #+begin_src emacs-lisp
 
-(use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
+  (use-package rainbow-delimiters
+    :hook (prog-mode . rainbow-delimiters-mode))
 
+  (use-package rainbow-mode
+    :defer t
+    :hook (org-mode
+           emacs-lisp-mode
+           web-mode
+           typescript-mode
+           js2-mode))
 #+end_src
 
 ** TODO Latex
@@ -766,7 +841,10 @@
   :config
   (default-text-scale-mode))
 #+end_src
-
+**  Bufler
+#+begin_src emacs-lisp
+(use-package bufler)
+#+end_src
 ** Remembering window history
 #+begin_src emacs-lisp
 
@@ -791,6 +869,5 @@
   ) 
 
 #+end_src
-
 
 
