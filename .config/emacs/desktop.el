@@ -162,5 +162,13 @@
 ;; Display all EXWM buffers in every workspace buffer list
 (setq exwm-workspace-show-all-buffers t)
 
-(pcase exwm-class-name
-  ("discord" (exwm-workspace-move-window 0)))
+(defun exwm-rename-buffer ()
+  (interactive)
+  (exwm-workspace-rename-buffer
+   (concat exwm-class-name ":"
+           (if (<= (length exwm-title) 20) exwm-title
+             (concat (substring exwm-title 0 19) "...")))))
+
+;; Add these hooks in a suitable place (e.g., as done in exwm-config-default)
+(add-hook 'exwm-update-class-hook 'exwm-rename-buffer)
+(add-hook 'exwm-update-title-hook 'exwm-rename-buffer)

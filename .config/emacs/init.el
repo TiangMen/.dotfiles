@@ -571,11 +571,8 @@
       `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
 
 (use-package pdf-tools
-  :magic ("%PDF" . pdf-view-mode)
-  :config
-  (pdf-tools-install)
-  (setq-default pdf-view-display-size 'fit-page)
-  )
+    :straight nil
+    :load-path "/home/user/.guix-profile/share/emacs/site-lisp/pdf-tools-0.91")
 
 (server-start)
 
@@ -627,3 +624,7 @@
         "wu" 'winner-undo ;; pop in and out of window history
         "wU" 'winner-redo ;; pop in and out of window history
 )
+
+(use-package mu4e
+  :straight nil
+  :load-path "/home/user/.guix-profile/share/emacs/site-lisp/mu4e")

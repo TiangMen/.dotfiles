@@ -61,6 +61,7 @@
   - [[#bufler][Bufler]]
   - [[#remembering-window-history][Remembering window history]]
   - [[#doom-window-keybindings][Doom Window Keybindings]]
+- [[#mail][Mail]]
 :END:
 
 * Faster Startup 
@@ -779,11 +780,8 @@
 * PDF
 #+begin_src emacs-lisp
 (use-package pdf-tools
-  :magic ("%PDF" . pdf-view-mode)
-  :config
-  (pdf-tools-install)
-  (setq-default pdf-view-display-size 'fit-page)
-  )
+    :straight nil
+    :load-path "/home/user/.guix-profile/share/emacs/site-lisp/pdf-tools-0.91")
 #+end_src
 
 * Emacs client
@@ -824,13 +822,13 @@
 
 * Magit
 #+begin_src emacs-lisp
-(use-package magit
-  :commands (magit-status magit-get-current-branch)
-  :custom
-  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+  (use-package magit
+    :commands (magit-status magit-get-current-branch)
+    :custom
+    (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
-(use-package evil-magit
-  :after magit)
+  (use-package evil-magit
+    :after magit)
 #+end_src
 
 * Window
@@ -871,3 +869,11 @@
 #+end_src
 
 
+
+
+* Mail
+#+begin_src emacs-lisp
+  (use-package mu4e
+    :straight nil
+    :load-path "/home/user/.guix-profile/share/emacs/site-lisp/mu4e")
+#+end_src
