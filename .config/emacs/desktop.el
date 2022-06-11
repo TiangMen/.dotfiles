@@ -144,6 +144,16 @@
   (desktop-environment-brightness-normal-increment "5%+")
   (desktop-environment-brightness-normal-decrement "5%-"))
 
+(defun efs/exwm-update-title ()
+  (pcase exwm-class-name
+    ("Brave-browser" (exwm-workspace-rename-buffer (format "Brave: %s" exwm-title)))))
+
+  ;; When window title updates, use it to set the buffer name
+  (add-hook 'exwm-update-title-hook #'efs/exwm-update-title)
+
+  (pcase exwm-class-name
+    ("discord" (exwm-workspace-move-window 0)))
+
 (defun efs/configure-window-by-class ()
   (interactive)
   (message "Window '%s' appeared!" exwm-class))

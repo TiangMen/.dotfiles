@@ -70,12 +70,12 @@
 (setq straight-use-package-by-default t)
 
 ;; Or if you use use-package
-  (use-package dashboard
+(use-package dashboard
     :ensure t
     :config
     (dashboard-setup-startup-hook))
 
-(setq dashboard-startup-banner "~/flex/example.png")
+(setq dashboard-startup-banner "~/.config/screenshots/example.png")
 
 (column-number-mode)
 (global-display-line-numbers-mode t)
@@ -83,6 +83,7 @@
 ;; Disable line numbers for some modes
 (dolist (mode '(org-mode-hook
                 vterm-mode-hook
+                twittering-mode-hook
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
@@ -154,12 +155,19 @@
   (setq which-key-idle-delay 1))
 
 (straight-use-package
- '(evil-multiedit :type git :host github :repo "hlissner/evil-multiedit"))
-
-(require 'evil-multiedit)
+   '(evil-multiedit :type git :host github :repo "hlissner/evil-multiedit")
+  )
+  (require 'evil-multiedit)
 (evil-multiedit-default-keybinds)
 
-
+(use-package evil-org
+  :after org
+  :hook ((org-mode . evil-org-mode)
+         (org-agenda-mode . evil-org-mode)
+         (evil-org-mode . (lambda () (evil-org-set-key-theme '(navigation todo insert textobjects additional)))))
+  :config
+  (require 'evil-org-agenda)
+  (evil-org-agenda-set-keys))
 
 ;; This is needed as of Org 9.2
 (require 'org-tempo)
@@ -238,19 +246,139 @@
   :hook (org-mode . efs/org-mode-visual-fill))
 
 (defun efs/org-mode-setup ()
-    (org-indent-mode)
-    (variable-pitch-mode 1)
-    (visual-line-mode 1))
+     (org-indent-mode)
+     (variable-pitch-mode 1)
+     (visual-line-mode 1))
 
-(use-package org :straight (:type built-in)
-    :commands (org-capture org-agenda)
-    :hook (org-mode . efs/org-mode-setup)
-    :config
-    (setq org-ellipsis " ▾")
-(efs/org-font-setup))
+ (use-package org :straight (:type built-in)
+     :commands (org-capture org-agenda)
+     :hook (org-mode . efs/org-mode-setup)
+     :config
 
-(setq org-directory "~/Projects/Code/OrgFiles")
-(setq org-agenda-files '("Tasks.org"))
+  (setq org-directory "~/Projects/Code/OrgFiles")
+  (setq org-agenda-files '("Tasks.org" "Birthdays.org"))
+
+
+  (setq org-agenda-start-with-log-mode t)
+  (setq org-log-done 'time)
+  (setq org-log-into-drawer t)
+
+ (setq org-todo-keywords
+    '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
+      (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
+ ;; Configure custom agenda views
+ (setq org-tag-alist
+   '((:startgroup)
+      ; Put mutually exclusive tags here
+      (:endgroup)
+      ("@errand" . ?E)
+      ("@home" . ?H)
+      ("@work" . ?W)
+      ("agenda" . ?a)
+      ("planning" . ?p)
+      ("publish" . ?P)
+      ("batch" . ?b)
+      ("note" . ?n)
+      ("idea" . ?i)))
+
+ (setq org-agenda-custom-commands
+  '(("d" "Dashboard"
+    ((agenda "" ((org-deadline-warning-days 7)))
+     (todo "NEXT"
+       ((org-agenda-overriding-header "Next Tasks")))
+     (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
+
+   ("n" "Next Tasks"
+    ((todo "NEXT"
+       ((org-agenda-overriding-header "Next Tasks")))))
+
+   ("W" "Work Tasks" tags-todo "+work-email")
+
+   ;; Low-effort next actions
+   ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
+    ((org-agenda-overriding-header "Low Effort Tasks")
+     (org-agenda-max-todos 20)
+     (org-agenda-files org-agenda-files)))
+
+   ("w" "Workflow Status"
+    ((todo "WAIT"
+           ((org-agenda-overriding-header "Waiting on External")
+            (org-agenda-files org-agenda-files)))
+     (todo "REVIEW"
+           ((org-agenda-overriding-header "In Review")
+            (org-agenda-files org-agenda-files)))
+     (todo "PLAN"
+           ((org-agenda-overriding-header "In Planning")
+            (org-agenda-todo-list-sublevels nil)
+            (org-agenda-files org-agenda-files)))
+     (todo "BACKLOG"
+           ((org-agenda-overriding-header "Project Backlog")
+            (org-agenda-todo-list-sublevels nil)
+            (org-agenda-files org-agenda-files)))
+     (todo "READY"
+           ((org-agenda-overriding-header "Ready for Work")
+            (org-agenda-files org-agenda-files)))
+     (todo "ACTIVE"
+           ((org-agenda-overriding-header "Active Projects")
+            (org-agenda-files org-agenda-files)))
+     (todo "COMPLETED"
+           ((org-agenda-overriding-header "Completed Projects")
+            (org-agenda-files org-agenda-files)))
+     (todo "CANC"
+           ((org-agenda-overriding-header "Cancelled Projects")
+            (org-agenda-files org-agenda-files)))))))
+     (setq org-ellipsis " ▾")
+
+(setq org-capture-templates
+   `(("t" "Tasks / Projects")
+     ("tt" "Task" entry (file+olp "~/Projects/Code/OrgFiles/Tasks.org" "Inbox")
+          "* TODO %?\n  %U\n  %a\n  %i" :empty-lines 1)
+
+     ("j" "Journal Entries")
+     ("jj" "Journal" entry
+          (file+olp+datetree "~/Projects/Code/OrgFiles/Journal.org")
+          "\n* %<%I:%M %p> - Journal :journal:\n\n%?\n\n"
+          ;; ,(dw/read-file-as-string "~/Notes/Templates/Daily.org")
+          :clock-in :clock-resume
+          :empty-lines 1)
+     ("jm" "Meeting" entry
+          (file+olp+datetree "~/Projects/Code/OrgFiles/Journal.org")
+          "* %<%I:%M %p> - %a :meetings:\n\n%?\n\n"
+          :clock-in :clock-resume
+          :empty-lines 1)
+
+     ("w" "Workflows")
+     ("we" "Checking Email" entry (file+olp+datetree "~/Projects/Code/OrgFiles/Journal.org")
+          "* Checking Email :email:\n\n%?" :clock-in :clock-resume :empty-lines 1)
+
+     ("m" "Metrics Capture")
+     ("mw" "Weight" table-line (file+headline "~/Projects/Code/OrgFiles/Metrics.org" "Weight")
+      "| %U | %^{Weight} | %^{Notes} |" :kill-buffer t)))
+
+ (efs/org-font-setup))
+
+(use-package org-roam
+  :ensure t
+  :init
+  (setq org-roam-v2-ack t)
+  :custom
+  (org-roam-directory "~/RoamNotes")
+  (org-roam-completion-everywhere t)
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert)
+         :map org-mode-map
+         ("C-M-i"    . completion-at-point))
+  :config
+  (org-roam-setup))
+
+    (rune/leader-keys
+        "cn"  '(:ignore t :which-key "Org Roam")
+        "cnl"  'org-roam-buffer-toggle
+        "cnf" 'org-roam-node-find
+        "cni" 'org-roam-node-insert)
+
+
 
 (use-package org-make-toc
   :hook (org-mode . org-make-toc-mode))
@@ -318,12 +446,6 @@
       )
 
 (add-hook 'after-init-hook 'global-company-mode)
-
-(use-package lsp-pyright
-  :ensure t
-  :hook (python-mode . (lambda ()
-                          (require 'lsp-pyright)
-                          (lsp))))  ; or lsp-deferred
 
 (use-package pyvenv
   :ensure t
@@ -628,3 +750,6 @@
 (use-package mu4e
   :straight nil
   :load-path "/home/user/.guix-profile/share/emacs/site-lisp/mu4e")
+
+;; Set default connection mode to SSH
+(setq tramp-default-method "ssh")
