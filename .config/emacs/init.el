@@ -2,55 +2,67 @@
 (setq read-process-output-max (* 1 1024 1024)) ;; 1 MB
 
 ;; The default is 800 kilobytes.  Measured in bytes.
-    (setq inhibit-startup-message t)
+     (setq inhibit-startup-message t)
 
-    (scroll-bar-mode -1)        ; Disable visible scrollbar
-    (tool-bar-mode -1)          ; Disable the toolbar
-    (tooltip-mode -1)           ; Disable tooltips
-    (set-fringe-mode 10)        ; Give some breathing room
+     (scroll-bar-mode -1)        ; Disable visible scrollbar
+     (tool-bar-mode -1)          ; Disable the toolbar
+     (tooltip-mode -1)           ; Disable tooltips
+     (set-fringe-mode 10)        ; Give some breathing room
 
-    (menu-bar-mode -1)            ; Disable the menu bar
+     (menu-bar-mode -1)            ; Disable the menu bar
 
-    ;; Set up the visible bell
-    (setq visible-bell t)
+     ;; Set up the visible bell
+     (setq visible-bell t)
 
-    (set-fringe-mode 10)        ; Give some breathing room
+     (set-fringe-mode 10)        ; Give some breathing room
 
-    (recentf-mode 1) ;; remembers recently edited files
+     (recentf-mode 1) ;; remembers recently edited files
 
-    ;; Save what you enter into minibuffer prompts
-    (setq history-length 25)
-    (savehist-mode 1)
+     ;; Save what you enter into minibuffer prompts
+     (setq history-length 25)
+     (savehist-mode 1)
 
-    ;; Remember and restore the last cursor location of opened files
-    (save-place-mode 1)
+     ;; Remember and restore the last cursor location of opened files
+     (save-place-mode 1)
 
-    ;; Move customization variables to a separate file and load it
-    (setq custom-file (locate-user-emacs-file "custom-vars.el"))
-    (load custom-file 'noerror 'nomessage)
+     ;; Move customization variables to a separate file and load it
+     (setq custom-file (locate-user-emacs-file "custom-vars.el"))
+     (load custom-file 'noerror 'nomessage)
 
-    ;; Don't pop up UI dialogs when prompting
-    (setq use-dialog-box nil)
+     ;; Don't pop up UI dialogs when prompting
+     (setq use-dialog-box nil)
 
-    ;; Revert buffers when the underlying file has changed
-    (global-auto-revert-mode 1)
-    ;; Revert Dired and other buffers
-    (setq global-auto-revert-non-file-buffers t)
-    ;; NOTE: init.el is now generated from Emacs.org.  Please edit that file
-    ;;       in Emacs and init.el will be generated automatically!
+     ;; Revert buffers when the underlying file has changed
+     (global-auto-revert-mode 1)
+     ;; Revert Dired and other buffers
+     (setq global-auto-revert-non-file-buffers t)
+     ;; NOTE: init.el is now generated from Emacs.org.  Please edit that file
+     ;;       in Emacs and init.el will be generated automatically!
 
-    ;; You will most likely need to adjust this font size for your system!
-    (defvar efs/default-font-size 120)
-    (defvar efs/default-variable-font-size 120)
+     ;; You will most likely need to adjust this font size for your system!
+     (defvar efs/default-font-size 120)
+     (defvar efs/default-variable-font-size 120)
 
-  ;; Make frame transparency overridable
-  (defvar efs/frame-transparency '(90 . 90))
+  ;;(set-frame-parameter (selected-frame) 'alpha '(<active> . <inactive>))
+  ;;(set-frame-parameter (selected-frame) 'alpha <both>)
+  (set-frame-parameter (selected-frame) 'alpha '(85 . 50))
+  (add-to-list 'default-frame-alist '(alpha . (85 . 50)))
+ ;; Set frame transparency
 
-;; Set frame transparency
-(set-frame-parameter (selected-frame) 'alpha efs/frame-transparency)
-(add-to-list 'default-frame-alist `(alpha . ,efs/frame-transparency))
-(set-frame-parameter (selected-frame) 'fullscreen 'maximized)
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
+(defun toggle-transparency ()
+  (interactive)
+  (let ((alpha (frame-parameter nil 'alpha)))
+    (set-frame-parameter
+     nil 'alpha
+     (if (eql (cond ((numberp alpha) alpha)
+                    ((numberp (cdr alpha)) (cdr alpha))
+                    ;; Also handle undocumented (<active> <inactive>) form.
+                    ((numberp (cadr alpha)) (cadr alpha)))
+              100)
+         '(85 . 50) '(100 . 100)))))
+
+    (rune/leader-keys
+        "ct" 'toggle-transparency)
 
 (defvar bootstrap-version)
 (let ((bootstrap-file
@@ -757,7 +769,8 @@
   :load-path "/home/user/.guix-profile/share/emacs/site-lisp/mu4e")
 
 ;; Set default connection mode to SSH
-(setq tramp-default-method "ssh")
+  (setq tramp-default-method "ssh")
+(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
 
 (use-package doom-snippets
       :after yasnippet
@@ -771,6 +784,3 @@
 (use-package flyspell-correct
       :after flyspell
       :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
-    
-(use-package flyspell-correct-ivy
-  :after flyspell-correct)
