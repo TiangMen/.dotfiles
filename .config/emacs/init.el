@@ -163,7 +163,7 @@
 (use-package evil-org
   :after org
   :hook ((org-mode . evil-org-mode)
-         (org-agenda-mode . evil-org-mode)
+         
          (evil-org-mode . (lambda () (evil-org-set-key-theme '(navigation todo insert textobjects additional)))))
   :config
   (require 'evil-org-agenda)
@@ -253,6 +253,7 @@
  (use-package org :straight (:type built-in)
      :commands (org-capture org-agenda)
      :hook (org-mode . efs/org-mode-setup)
+  (org-mode . flyspell-mode)
      :config
 
   (setq org-directory "~/Projects/Code/OrgFiles")
@@ -373,21 +374,25 @@
   (org-roam-setup))
 
     (rune/leader-keys
-        "cn"  '(:ignore t :which-key "Org Roam")
-        "cnl"  'org-roam-buffer-toggle
-        "cnf" 'org-roam-node-find
-        "cni" 'org-roam-node-insert)
+        "nc"  '(:ignore t :which-key "Org Roam")
+        "ncl"  'org-roam-buffer-toggle
+        "ncf" 'org-roam-node-find
+        "nci" 'org-roam-node-insert)
 
 
 
 (use-package org-make-toc
   :hook (org-mode . org-make-toc-mode))
 
-(use-package all-the-icons)
+(straight-use-package
+ '(nyan-mode :type git :host github :repo "TeMPOraL/nyan-mode"))
+(require 'nyan-mode)
 
-(use-package doom-modeline
-  :init (doom-modeline-mode 1)
-  :custom ((doom-modeline-height 15)))
+    (use-package all-the-icons)
+
+    (use-package doom-modeline
+      :init (doom-modeline-mode 1)
+      :custom ((doom-modeline-height 15)))
 
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
@@ -753,3 +758,19 @@
 
 ;; Set default connection mode to SSH
 (setq tramp-default-method "ssh")
+
+(use-package doom-snippets
+      :after yasnippet
+      :straight (doom-snippets :type git :host github :repo "hlissner/doom-snippets" :files ("*.el" "*")))
+    
+(use-package flymake-shellcheck
+  :commands flymake-shellcheck-load
+  :init
+  (add-hook 'sh-mode-hook 'flymake-shellcheck-load))
+
+(use-package flyspell-correct
+      :after flyspell
+      :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
+    
+(use-package flyspell-correct-ivy
+  :after flyspell-correct)
