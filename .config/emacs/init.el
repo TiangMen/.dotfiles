@@ -2,67 +2,46 @@
 (setq read-process-output-max (* 1 1024 1024)) ;; 1 MB
 
 ;; The default is 800 kilobytes.  Measured in bytes.
-     (setq inhibit-startup-message t)
+(setq inhibit-startup-message t)
 
-     (scroll-bar-mode -1)        ; Disable visible scrollbar
-     (tool-bar-mode -1)          ; Disable the toolbar
-     (tooltip-mode -1)           ; Disable tooltips
-     (set-fringe-mode 10)        ; Give some breathing room
+(scroll-bar-mode -1)        ; Disable visible scrollbar
+(tool-bar-mode -1)          ; Disable the toolbar
+(tooltip-mode -1)           ; Disable tooltips
+(set-fringe-mode 10)        ; Give some breathing room
 
-     (menu-bar-mode -1)            ; Disable the menu bar
+(menu-bar-mode -1)            ; Disable the menu bar
 
-     ;; Set up the visible bell
-     (setq visible-bell t)
+;; Set up the visible bell
+(setq visible-bell t)
 
-     (set-fringe-mode 10)        ; Give some breathing room
+(set-fringe-mode 10)        ; Give some breathing room
 
-     (recentf-mode 1) ;; remembers recently edited files
+(recentf-mode 1) ;; remembers recently edited files
 
-     ;; Save what you enter into minibuffer prompts
-     (setq history-length 25)
-     (savehist-mode 1)
+;; Save what you enter into minibuffer prompts
+(setq history-length 25)
+(savehist-mode 1)
 
-     ;; Remember and restore the last cursor location of opened files
-     (save-place-mode 1)
+;; Remember and restore the last cursor location of opened files
+(save-place-mode 1)
 
-     ;; Move customization variables to a separate file and load it
-     (setq custom-file (locate-user-emacs-file "custom-vars.el"))
-     (load custom-file 'noerror 'nomessage)
+;; Move customization variables to a separate file and load it
+(setq custom-file (locate-user-emacs-file "custom-vars.el"))
+(load custom-file 'noerror 'nomessage)
 
-     ;; Don't pop up UI dialogs when prompting
-     (setq use-dialog-box nil)
+;; Don't pop up UI dialogs when prompting
+(setq use-dialog-box nil)
 
-     ;; Revert buffers when the underlying file has changed
-     (global-auto-revert-mode 1)
-     ;; Revert Dired and other buffers
-     (setq global-auto-revert-non-file-buffers t)
-     ;; NOTE: init.el is now generated from Emacs.org.  Please edit that file
-     ;;       in Emacs and init.el will be generated automatically!
+;; Revert buffers when the underlying file has changed
+(global-auto-revert-mode 1)
+;; Revert Dired and other buffers
+(setq global-auto-revert-non-file-buffers t)
+;; NOTE: init.el is now generated from Emacs.org.  Please edit that file
+;;       in Emacs and init.el will be generated automatically!
 
-     ;; You will most likely need to adjust this font size for your system!
-     (defvar efs/default-font-size 120)
-     (defvar efs/default-variable-font-size 120)
-
-  ;;(set-frame-parameter (selected-frame) 'alpha '(<active> . <inactive>))
-  ;;(set-frame-parameter (selected-frame) 'alpha <both>)
-  (set-frame-parameter (selected-frame) 'alpha '(85 . 50))
-  (add-to-list 'default-frame-alist '(alpha . (85 . 50)))
- ;; Set frame transparency
-
-(defun toggle-transparency ()
-  (interactive)
-  (let ((alpha (frame-parameter nil 'alpha)))
-    (set-frame-parameter
-     nil 'alpha
-     (if (eql (cond ((numberp alpha) alpha)
-                    ((numberp (cdr alpha)) (cdr alpha))
-                    ;; Also handle undocumented (<active> <inactive>) form.
-                    ((numberp (cadr alpha)) (cadr alpha)))
-              100)
-         '(85 . 50) '(100 . 100)))))
-
-    (rune/leader-keys
-        "ct" 'toggle-transparency)
+;; You will most likely need to adjust this font size for your system!
+(defvar efs/default-font-size 120)
+(defvar efs/default-variable-font-size 120)
 
 (defvar bootstrap-version)
 (let ((bootstrap-file
@@ -80,6 +59,79 @@
 ;; Use straight.el for use-package expressions
 (straight-use-package 'use-package)
 (setq straight-use-package-by-default t)
+
+(use-package guix-emacs
+    :straight nil
+    :load-path "/home/user/.guix-profile/share/emacs/site-lisp/guix-emacs")
+  
+(rune/leader-keys
+  "G"  '(:ignore t :which-key "Guix")
+  "Gg" '(guix :which-key "Guix")
+  "Gi" '(guix-installed-user-packages :which-key "user packages")
+  "GI" '(guix-installed-system-packages :which-key "system packages")
+  "Gp" '(guix-packages-by-name :which-key "search packages")
+  "GP" '(guix-pull :which-key "pull"))
+
+(use-package vertico
+    :ensure t
+    :bind (:map vertico-map
+           ("C-j" . vertico-next)
+           ("C-k" . vertico-previous)
+           ("C-f" . vertico-exit)
+           :map minibuffer-local-map
+           ("C-w" . backward-kill-word))
+    :custom
+    (vertico-cycle t)
+    :init
+    (vertico-mode))
+
+  (use-package savehist
+    :init
+    (savehist-mode))
+
+  (use-package marginalia
+    :after vertico
+    :ensure t
+    :custom
+    (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
+    :init
+    (marginalia-mode))
+
+(use-package orderless
+  :straight t
+  :init
+  (setq completion-styles '(orderless)
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles . (partial-completion))))))
+
+(use-package company
+      :after lsp-mode
+      :hook (lsp-mode . company-mode)
+      :bind (:map company-active-map
+             ("<tab>" . company-complete-selection))
+            (:map lsp-mode-map
+             ("<tab>" . company-indent-or-complete-common))
+      :custom
+      (company-minimum-prefix-length 1)
+      (company-idle-delay 0.0))
+
+    (use-package company-box
+      :hook (company-mode . company-box-mode))
+
+    (use-package company-prescient
+      :after company
+      :config
+      (company-prescient-mode 1)
+      (prescient-persist-mode)
+      )
+
+(add-hook 'after-init-hook 'global-company-mode)
+
+(use-package all-the-icons)
+
+(use-package doom-modeline
+  :init (doom-modeline-mode 1)
+  :custom ((doom-modeline-height 15)))
 
 ;; Or if you use use-package
 (use-package dashboard
@@ -99,20 +151,49 @@
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
-(use-package projectile
-  :diminish projectile-mode
-  :config (projectile-mode)
-  :bind-keymap
-  ("C-c p" . projectile-command-map)
-  :init
-  (when (file-directory-p "~/Projects/Code")
-    (setq projectile-project-search-path '("~/Projects/Code")))
-  (setq projectile-switch-project-action #'projectile-dired))
+(use-package default-text-scale
+  :defer 1
+  :config
+  (default-text-scale-mode))
 
-(use-package counsel-projectile
-    :after projectile
-    :config
-    (counsel-projectile-mode 1))
+(use-package bufler)
+
+(use-package winner
+  :after evil
+  :config
+  (winner-mode))
+
+(rune/leader-keys
+        "w"  '(:ignore t :which-key "evil window")
+        "ws" 'evil-window-split
+        "wv" 'evil-window-vsplit
+        "ww" 'evil-window-next
+        "wo" 'delete-other-windows
+        "wq" 'evil-quit
+        "wu" 'winner-undo ;; pop in and out of window history
+        "wU" 'winner-redo ;; pop in and out of window history
+)
+
+;;(set-frame-parameter (selected-frame) 'alpha '(<active> . <inactive>))
+  ;;(set-frame-parameter (selected-frame) 'alpha <both>)
+  (set-frame-parameter (selected-frame) 'alpha '(85 . 50))
+  (add-to-list 'default-frame-alist '(alpha . (85 . 50)))
+ ;; Set frame transparency
+
+(defun toggle-transparency ()
+  (interactive)
+  (let ((alpha (frame-parameter nil 'alpha)))
+    (set-frame-parameter
+     nil 'alpha
+     (if (eql (cond ((numberp alpha) alpha)
+                    ((numberp (cdr alpha)) (cdr alpha))
+                    ;; Also handle undocumented (<active> <inactive>) form.
+                    ((numberp (cadr alpha)) (cadr alpha)))
+              100)
+         '(85 . 50) '(100 . 100)))))
+
+    (rune/leader-keys
+        "ct" 'toggle-transparency)
 
 (use-package general
     :config
@@ -180,6 +261,112 @@
   :config
   (require 'evil-org-agenda)
   (evil-org-agenda-set-keys))
+
+(use-package hydra)
+
+(defhydra hydra-text-scale (:timeout 4)
+  "scale text"
+  ("j" text-scale-increase "in")
+  ("k" text-scale-decrease "out")
+  ("f" nil "finished" :exit t))
+
+(rune/leader-keys
+  "ts" '(hydra-text-scale/body :which-key "scale text"))
+
+(use-package doom-snippets
+      :after yasnippet
+      :straight (doom-snippets :type git :host github :repo "hlissner/doom-snippets" :files ("*.el" "*")))
+    
+(use-package flymake-shellcheck
+  :commands flymake-shellcheck-load
+  :init
+  (add-hook 'sh-mode-hook 'flymake-shellcheck-load))
+
+(defun my/autoinsert-yas-expand()
+    "Replace text in yasnippet template."
+    (yas/expand-snippet (buffer-string) (point-min) (point-max)))
+
+(custom-set-variables
+    '(auto-insert 'other)
+    '(auto-insert-directory "~/autoinsert/")
+    '(auto-insert-alist '((("\\.sh\\'" . "Shell script") . ["template.sh" my/autoinsert-yas-expand])
+                            (("\\.el\\'" . "Emacs Lisp") . ["template.el" my/autoinsert-yas-expand])
+                            (("\\.py\\'" . "Python script") . ["template.py" my/autoinsert-yas-expand])
+                            (("[mM]akefile\\'" . "Makefile") . ["Makefile" my/autoinsert-yas-expand])
+                            )))
+
+(use-package pyvenv
+  :ensure t
+  :init
+  (setenv "WORKON_HOME" "~/.venvs/")
+  :config
+  ;; (pyvenv-mode t)
+
+  ;; Set correct Python interpreter
+  (setq pyvenv-post-activate-hooks
+        (list (lambda ()
+                (setq python-shell-interpreter (concat pyvenv-virtual-env "bin/python")))))
+  (setq pyvenv-post-deactivate-hooks
+        (list (lambda ()
+                (setq python-shell-interpreter "python3")))))
+
+(use-package blacken
+  :init
+  (setq-default blacken-fast-unsafe t)
+  (setq-default blacken-line-length 80)
+  )
+(use-package python-mode
+  :hook
+  (python-mode . pyvenv-mode)
+  (python-mode . flycheck-mode)
+  (python-mode . company-mode)
+  (python-mode . blacken-mode)
+  (python-mode . yas-minor-mode)
+  :custom
+  ;; NOTE: Set these if Python 3 is called "python3" on your system!
+  (python-shell-interpreter "python3")
+  :config
+  )
+
+(use-package pyvenv
+  :config
+  (pyvenv-mode 1))
+
+(use-package go-mode
+    :hook
+    (go-mode . lsp-deferred)
+    (go-mode . flycheck-mode)
+    (go-mode . company-mode)
+  )
+
+(add-hook 'go-mode-hook
+          (lambda ()
+            (add-hook 'before-save-hook 'gofmt-before-save)
+            (setq tab-width 4)
+            (setq indent-tabs-mode 1)))
+
+(use-package yasnippet-snippets)
+(use-package yasnippet
+  :diminish yas-minor-mode
+  :config
+    (yas-reload-all)
+    (yas-global-mode)
+)
+
+(use-package evil-nerd-commenter
+  :bind ("M-/" . evilnc-comment-or-uncomment-lines))
+
+(use-package flycheck
+  :diminish flycheck-mode
+  :init
+  (setq flycheck-check-syntax-automatically '(save new-line)
+        flycheck-idle-change-delay 5.0
+        flycheck-display-errors-delay 0.9
+        flycheck-highlighting-mode 'symbols
+        flycheck-indication-mode 'left-fringe
+        flycheck-standard-error-navigation t
+        flycheck-deferred-syntax-check nil)
+  )
 
 ;; This is needed as of Org 9.2
 (require 'org-tempo)
@@ -391,151 +578,8 @@
         "ncf" 'org-roam-node-find
         "nci" 'org-roam-node-insert)
 
-
-
 (use-package org-make-toc
   :hook (org-mode . org-make-toc-mode))
-
-(straight-use-package
- '(nyan-mode :type git :host github :repo "TeMPOraL/nyan-mode"))
-(require 'nyan-mode)
-
-    (use-package all-the-icons)
-
-    (use-package doom-modeline
-      :init (doom-modeline-mode 1)
-      :custom ((doom-modeline-height 15)))
-
-(use-package lsp-mode
-  :commands (lsp lsp-deferred)
-  :hook 
-  (lsp-mode . lsp-enable-which-key-integration)
-  :custom
-  (lsp-diagnostics-provider :capf)
-  (lsp-headerline-breadcrumb-enable t)
-  (lsp-headerline-breadcrumb-segments '(project file symbols))
-  (lsp-lens-enable nil)
-  (lsp-disabled-clients '((python-mode . pyls)))
-  :init
-  (setq lsp-keymap-prefix "C-c l") ;; Or 'C-l', 's-l'
-  :config
-  )
-(use-package lsp-ui
-  :hook (lsp-mode . lsp-ui-mode)
-  :after lsp-mode
-  :custom
-  (lsp-ui-doc-show-with-cursor nil)
-  :config
-  (setq lsp-ui-doc-position 'bottom)
-  )
-
-
-(general-define-key
- :states '(normal visual)
- :keymaps 'lsp-mode-map
- :prefix "SPC"
-  "d" '(lsp-find-definition :which-key "find-definitions")
-  "r" '(lsp-find-references :which-key "find-references")
-  "h" '(lsp-describe-thing-at-point :which-key "help-detailed")
-  "e" '(lsp-ui-flycheck-list :which-key "flycheck-list")
-  "o" 'counsel-imenu
-  "x" 'lsp-execute-code-action)
-
-(use-package company
-      :after lsp-mode
-      :hook (lsp-mode . company-mode)
-      :bind (:map company-active-map
-             ("<tab>" . company-complete-selection))
-            (:map lsp-mode-map
-             ("<tab>" . company-indent-or-complete-common))
-      :custom
-      (company-minimum-prefix-length 1)
-      (company-idle-delay 0.0))
-
-    (use-package company-box
-      :hook (company-mode . company-box-mode))
-
-    (use-package company-prescient
-      :after company
-      :config
-      (company-prescient-mode 1)
-      (prescient-persist-mode)
-      )
-
-(add-hook 'after-init-hook 'global-company-mode)
-
-(use-package pyvenv
-  :ensure t
-  :init
-  (setenv "WORKON_HOME" "~/.venvs/")
-  :config
-  ;; (pyvenv-mode t)
-
-  ;; Set correct Python interpreter
-  (setq pyvenv-post-activate-hooks
-        (list (lambda ()
-                (setq python-shell-interpreter (concat pyvenv-virtual-env "bin/python")))))
-  (setq pyvenv-post-deactivate-hooks
-        (list (lambda ()
-                (setq python-shell-interpreter "python3")))))
-
-(use-package blacken
-  :init
-  (setq-default blacken-fast-unsafe t)
-  (setq-default blacken-line-length 80)
-  )
-(use-package python-mode
-  :hook
-  (python-mode . pyvenv-mode)
-  (python-mode . flycheck-mode)
-  (python-mode . company-mode)
-  (python-mode . blacken-mode)
-  (python-mode . yas-minor-mode)
-  :custom
-  ;; NOTE: Set these if Python 3 is called "python3" on your system!
-  (python-shell-interpreter "python3")
-  :config
-  )
-
-(use-package pyvenv
-  :config
-  (pyvenv-mode 1))
-
-(use-package go-mode
-    :hook
-    (go-mode . lsp-deferred)
-    (go-mode . flycheck-mode)
-    (go-mode . company-mode)
-  )
-
-(add-hook 'go-mode-hook
-          (lambda ()
-            (add-hook 'before-save-hook 'gofmt-before-save)
-            (setq tab-width 4)
-            (setq indent-tabs-mode 1)))
-
-(use-package yasnippet-snippets)
-(use-package yasnippet
-  :diminish yas-minor-mode
-  :config
-    (yas-reload-all)
-    (yas-global-mode)
-)
-
-(use-package evil-nerd-commenter
-  :bind ("M-/" . evilnc-comment-or-uncomment-lines))
-
-(use-package flycheck
-  :diminish flycheck-mode
-  :init
-  (setq flycheck-check-syntax-automatically '(save new-line)
-        flycheck-idle-change-delay 5.0
-        flycheck-display-errors-delay 0.9
-        flycheck-highlighting-mode 'symbols
-        flycheck-indication-mode 'left-fringe
-        flycheck-standard-error-navigation t
-        flycheck-deferred-syntax-check nil)
-  )
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
@@ -661,43 +705,6 @@
   (evil-collection-define-key 'normal 'dired-mode-map
     "H" 'dired-hide-dotfiles-mode))
 
-(use-package vertico
-    :ensure t
-    :bind (:map vertico-map
-           ("C-j" . vertico-next)
-           ("C-k" . vertico-previous)
-           ("C-f" . vertico-exit)
-           :map minibuffer-local-map
-           ("C-w" . backward-kill-word))
-    :custom
-    (vertico-cycle t)
-    :init
-    (vertico-mode))
-
-  (use-package savehist
-    :init
-    (savehist-mode))
-
-  (use-package marginalia
-    :after vertico
-    :ensure t
-    :custom
-    (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
-    :init
-    (marginalia-mode))
-
-(use-package orderless
-  :straight t
-  :init
-  (setq completion-styles '(orderless)
-        completion-category-defaults nil
-        completion-category-overrides '((file (styles . (partial-completion))))))
-
-(straight-use-package
-   '(twittering-mode :type git :host github :repo "hayamiz/twittering-mode"))
-
-(setq twittering-use-master-password t)
-
 ;; NOTE: If you want to move everything out of the ~/.emacs.d folder
 ;; reliably, set `user-emacs-directory` before loading no-littering!
 ;(setq user-emacs-directory "~/.cache/emacs")
@@ -709,10 +716,6 @@
 (setq auto-save-file-name-transforms
       `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
 
-(use-package pdf-tools
-    :straight nil
-    :load-path "/home/user/.guix-profile/share/emacs/site-lisp/pdf-tools-0.91")
-
 (server-start)
 
 (use-package vterm
@@ -720,18 +723,20 @@
   :config
   (setq vterm-max-scrollback 10000))
 
-(use-package elcord
-  :straight t
-  :custom
-  (elcord-display-buffer-details nil)
-  :config
-  (elcord-mode))
+(use-package projectile
+  :diminish projectile-mode
+  :config (projectile-mode)
+  :bind-keymap
+  ("C-c p" . projectile-command-map)
+  :init
+  (when (file-directory-p "~/Projects/Code")
+    (setq projectile-project-search-path '("~/Projects/Code")))
+  (setq projectile-switch-project-action #'projectile-dired))
 
-(use-package elfeed
-  :commands elfeed
-  :config
-  (setq elfeed-feeds
-    '("https://www.reddit.com/r/emacs/.rss")))
+(use-package counsel-projectile
+    :after projectile
+    :config
+    (counsel-projectile-mode 1))
 
 (use-package magit
   :commands (magit-status magit-get-current-branch)
@@ -741,45 +746,88 @@
 (use-package evil-magit
   :after magit)
 
-(use-package default-text-scale
-  :defer 1
+(use-package lsp-mode
+  :commands (lsp lsp-deferred)
+  :hook 
+  (lsp-mode . lsp-enable-which-key-integration)
+  :custom
+  (lsp-diagnostics-provider :capf)
+  (lsp-headerline-breadcrumb-enable t)
+  (lsp-headerline-breadcrumb-segments '(project file symbols))
+  (lsp-lens-enable nil)
+  (lsp-disabled-clients '((python-mode . pyls)))
+  :init
+  (setq lsp-keymap-prefix "C-c l") ;; Or 'C-l', 's-l'
   :config
-  (default-text-scale-mode))
-
-(use-package bufler)
-
-(use-package winner
-  :after evil
+  )
+(use-package lsp-ui
+  :hook (lsp-mode . lsp-ui-mode)
+  :after lsp-mode
+  :custom
+  (lsp-ui-doc-show-with-cursor nil)
   :config
-  (winner-mode))
+  (setq lsp-ui-doc-position 'bottom)
+  )
 
-(rune/leader-keys
-        "w"  '(:ignore t :which-key "evil window")
-        "ws" 'evil-window-split
-        "wv" 'evil-window-vsplit
-        "ww" 'evil-window-next
-        "wo" 'delete-other-windows
-        "wq" 'evil-quit
-        "wu" 'winner-undo ;; pop in and out of window history
-        "wU" 'winner-redo ;; pop in and out of window history
+
+(general-define-key
+ :states '(normal visual)
+ :keymaps 'lsp-mode-map
+ :prefix "SPC"
+  "d" '(lsp-find-definition :which-key "find-definitions")
+  "r" '(lsp-find-references :which-key "find-references")
+  "h" '(lsp-describe-thing-at-point :which-key "help-detailed")
+  "e" '(lsp-ui-flycheck-list :which-key "flycheck-list")
+  "o" 'counsel-imenu
+  "x" 'lsp-execute-code-action)
+
+
+
+(use-package pdf-tools
+      :straight nil
+      :load-path "/home/user/.guix-profile/share/emacs/site-lisp/pdf-tools-0.91"
+  :magic ("%PDF" . pdf-view-mode)
+:config
+(pdf-tools-install)
+(setq-default pdf-view-display-size 'fit-page)
 )
 
 (use-package mu4e
   :straight nil
   :load-path "/home/user/.guix-profile/share/emacs/site-lisp/mu4e")
 
+(use-package elfeed
+  :commands elfeed
+  :config
+  (setq elfeed-feeds
+    '("https://nullprogram.com/feed/"
+      "https://ambrevar.xyz/atom.xml"
+      "https://guix.gnu.org/feeds/blog.atom"
+      "https://valdyas.org/fading/feed/"
+      "https://www.reddit.com/r/emacs/.rss")))
+
+(use-package twittering-mode
+  :straight nil
+  :load-path "/home/user/.guix-profile/share/emacs/site-lisp/twittering-mode-3.1.0")
+
+(setq twittering-use-master-password t)
+
+(use-package elcord
+  :straight t
+  :custom
+  (elcord-display-buffer-details nil)
+  :config
+  (elcord-mode))
+
 ;; Set default connection mode to SSH
   (setq tramp-default-method "ssh")
 (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
 
-(use-package doom-snippets
-      :after yasnippet
-      :straight (doom-snippets :type git :host github :repo "hlissner/doom-snippets" :files ("*.el" "*")))
-    
-(use-package flymake-shellcheck
-  :commands flymake-shellcheck-load
-  :init
-  (add-hook 'sh-mode-hook 'flymake-shellcheck-load))
+(use-package writegood-mode
+  :straight nil
+  :load-path "/home/user/.guix-profile/share/emacs/site-lisp/writegood-mode-2.0.4")
+(require 'writegood-mode)
+(global-set-key "\C-cg" 'writegood-mode)
 
 (use-package flyspell-correct
       :after flyspell
