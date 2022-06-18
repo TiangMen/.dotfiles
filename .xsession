@@ -10,7 +10,6 @@ xhost +SI:localuser:$USER
 picom &
 dunst &
 
-
 polybar-msg hook exwm 1 &
 
 #Playing Emacs

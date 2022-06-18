@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Bash initialization for interactive non-login shells and
 # for remote shells (info "(bash) Bash Startup Files").
 
@@ -65,11 +66,15 @@ setopt PUSHD_IGNORE_DUPS
 ## This reverts the +/- operators.
 setopt PUSHD_MINUS
 
-source $HOME/.guix-profile/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+# Fish-like fast/unobtrusive autosuggestions for zsh.  It suggests as I type
+source "$HOME/.guix-profile/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
-
-source $HOME/.config/zsh/git.zsh
-source $HOME/.config/zsh/nvm.zsh
+#sets the prompt
+source "$HOME/.config/zsh/git.zsh"
+source "$HOME/.config/zsh/nvm.zsh"
 autoload -U colors && colors
-source $HOME/.config/zsh/bureau.zsh-theme
-source $HOME/.guix-profile/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source "$HOME/.config/zsh/bureau.zsh-theme"
+source "$HOME/.guix-profile/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+
+
+

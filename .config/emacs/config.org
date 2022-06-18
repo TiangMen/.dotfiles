@@ -18,6 +18,7 @@ I have the time to configure Emacs to my liking. This is my config.
 - [[#package-management][Package Management]]
   - [[#straight-el][Straight El]]
   - [[#guix][GUIX]]
+    - [[#general][General]]
     - [[#guix-packages][guix packages]]
 - [[#completions][Completions]]
   - [[#vertico][Vertico]]
@@ -27,23 +28,25 @@ I have the time to configure Emacs to my liking. This is my config.
   - [[#dashboard][Dashboard]]
   - [[#window][Window]]
     - [[#scaling-text][Scaling text]]
-    - [[#bufler][Bufler]]
     - [[#remembering-window-history][Remembering window history]]
     - [[#doom-window-keybindings][Doom Window Keybindings]]
     - [[#transparency][Transparency]]
 - [[#editor][Editor]]
   - [[#keybindings][Keybindings]]
-    - [[#general][General]]
     - [[#evil-mode][Evil Mode]]
     - [[#key-chord][Key-Chord]]
     - [[#which-key][Which Key]]
     - [[#multi-cursors][multi-cursors]]
+      - [[#guix-packages][guix packages]]
     - [[#evil-org][evil org]]
     - [[#easy-text-in-and-out][Easy text In and Out]]
   - [[#doom-snippets][Doom Snippets]]
   - [[#file-templates][File Templates]]
 - [[#lang][Lang]]
+  - [[#sh][sh]]
   - [[#python][Python]]
+  - [[#cc][CC]]
+    - [[#clang-format][clang-format]]
   - [[#go][Go]]
   - [[#yasnippet][Yasnippet]]
   - [[#commenting][Commenting]]
@@ -81,6 +84,7 @@ I have the time to configure Emacs to my liking. This is my config.
   - [[#guix-packages][GUIX packages]]
 - [[#app][app]]
   - [[#elfeed][Elfeed]]
+    - [[#guix-packages][guix packages]]
   - [[#twittering-mode][Twittering Mode]]
     - [[#guix-packages][Guix Packages]]
   - [[#discord][Discord]]
@@ -89,6 +93,7 @@ I have the time to configure Emacs to my liking. This is my config.
   - [[#grammar][Grammar]]
     - [[#guix-packages][Guix Packages]]
   - [[#spelling][Spelling]]
+    - [[#guix-packages][Guix Packages]]
 :END:
 
 * Faster Startup 
@@ -148,37 +153,66 @@ I have the time to configure Emacs to my liking. This is my config.
 * Package Management
 ** Straight El
   #+begin_src emacs-lisp
-    (defvar bootstrap-version)
-    (let ((bootstrap-file
-	    (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-	    (bootstrap-version 5))
-	(unless (file-exists-p bootstrap-file)
-	(with-current-buffer
-	    (url-retrieve-synchronously
-		"https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-		'silent 'inhibit-cookies)
-	    (goto-char (point-max))
-	    (eval-print-last-sexp)))
-	(load bootstrap-file nil 'nomessage))
+        (defvar bootstrap-version)
+        (let ((bootstrap-file
+                (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+                (bootstrap-version 5))
+            (unless (file-exists-p bootstrap-file)
+            (with-current-buffer
+                (url-retrieve-synchronously
+                    "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+                    'silent 'inhibit-cookies)
+                (goto-char (point-max))
+                (eval-print-last-sexp)))
+            (load bootstrap-file nil 'nomessage))
 
     ;; Use straight.el for use-package expressions
     (straight-use-package 'use-package)
-    (setq straight-use-package-by-default t)
+    (setq use-package-always-ensure nil)
+    ;; Load the helper package for commands like `straight-x-clean-unused-repos'
+    (require 'straight-x)
+#+end_src
 
-  #+end_src
 ** GUIX 
+
 #+begin_src emacs-lisp
 (use-package guix-emacs
-    :straight nil
-    :load-path "/home/user/.guix-profile/share/emacs/site-lisp/guix-emacs")
-  
-(rune/leader-keys
-  "G"  '(:ignore t :which-key "Guix")
-  "Gg" '(guix :which-key "Guix")
-  "Gi" '(guix-installed-user-packages :which-key "user packages")
-  "GI" '(guix-installed-system-packages :which-key "system packages")
-  "Gp" '(guix-packages-by-name :which-key "search packages")
-  "GP" '(guix-pull :which-key "pull"))
+   :straight nil)
+#+end_src
+
+***  General 
+#+begin_src emacs-lisp
+    (use-package general
+        :straight nil
+        :config
+        (general-evil-setup t)
+
+        (general-create-definer rune/leader-keys
+        :keymaps '(normal insert visual emacs)
+        :prefix "SPC"
+        :global-prefix "C-SPC"))
+
+    (rune/leader-keys
+        "cc" 'compile
+        "." 'find-file
+        "," 'ido-switch-buffer
+        "oa" 'org-agenda
+        "oe" 'eshell
+        "ov" 'vterm
+        "hrr" '((lambda () (interactive) (load-file "~/.config/emacs/init.el"))
+                    :which-key "Reload Emacs config")
+        "fr" '(recentf-open-files :which-key "Recent files")
+        "fp" '((lambda () (interactive) (find-file (expand-file-name "~/.config/emacs/config.org")))
+                    :which-key "edit config")
+        "<" 'list-buffers) 
+
+  (rune/leader-keys
+    "G"  '(:ignore t :which-key "Guix")
+    "Gg" '(guix :which-key "Guix")
+    "Gi" '(guix-installed-user-packages :which-key "user packages")
+    "GI" '(guix-installed-system-packages :which-key "system packages")
+    "Gp" '(guix-packages-by-name :which-key "search packages")
+    "GP" '(guix-pull :which-key "pull"))
 #+end_src
 
 *** guix packages
@@ -191,7 +225,7 @@ emacs-guix
 ** Vertico
 #+begin_src emacs-lisp
   (use-package vertico
-    :ensure t
+    :straight nil
     :bind (:map vertico-map
            ("C-j" . vertico-next)
            ("C-k" . vertico-previous)
@@ -209,7 +243,6 @@ emacs-guix
 
   (use-package marginalia
     :after vertico
-    :ensure t
     :custom
     (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
     :init
@@ -227,51 +260,71 @@ emacs-guix
 ** Company
 #+begin_src emacs-lisp
     (use-package company
+      :straight t
       :after lsp-mode
       :hook (lsp-mode . company-mode)
       :bind (:map company-active-map
-             ("<tab>" . company-complete-selection))
-            (:map lsp-mode-map
-             ("<tab>" . company-indent-or-complete-common))
+                  ("<tab>" . company-complete-selection))
+      (:map lsp-mode-map
+            ("<tab>" . company-indent-or-complete-common))
       :custom
       (company-minimum-prefix-length 1)
       (company-idle-delay 0.0))
 
     (use-package company-box
+      :straight t
       :hook (company-mode . company-box-mode))
 
     (use-package company-prescient
+      :straight t
       :after company
       :config
       (company-prescient-mode 1)
-      (prescient-persist-mode)
-      )
+      (prescient-persist-mode))
 
-(add-hook 'after-init-hook 'global-company-mode)
+    (add-hook 'after-init-hook 'global-company-mode)
+
+   (setq ispell-program-name "hunspell")
+    ;; you could set `ispell-dictionary` instead but `ispell-local-dictionary' has higher priority
+    (setq ispell-local-dictionary "en_US")
+    (setq ispell-local-dictionary-alist '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "en_US,en_US-med") nil utf-8)))
+    ;; new variable `ispell-hunspell-dictionary-alist' is defined in Emacs
+    ;; If it's nil, Emacs tries to automatically set up the dictionaries.
+    (when (boundp 'ispell-hunspell-dictionary-alist)
+      (setq ispell-hunspell-dictionary-alist ispell-local-dictionary-alist))  
+  
+    (defun my-text-mode-hook ()
+    (setq-local company-backends
+                '((company-dabbrev company-ispell :separate)
+                  company-files)))
+
+  (add-hook 'text-mode-hook #'my-text-mode-hook)
 #+end_src
 
 * UI 
 
 ** Modeline
 #+begin_src emacs-lisp
-    (use-package all-the-icons)
+  (use-package all-the-icons
+    :straight nil)
 
-    (use-package doom-modeline
-      :init (doom-modeline-mode 1)
-      :custom ((doom-modeline-height 15)))
+  (use-package doom-modeline
+    :straight nil
+    :init (doom-modeline-mode 1)
+    :custom ((doom-modeline-height 15)))
 #+end_src
 
 
 ** Dashboard
-#+begin_src emacs-lisp
 
-;; Or if you use use-package
-(use-package dashboard
-    :ensure t
+#+begin_src emacs-lisp
+  ;; Or if you use use-package
+  (use-package dashboard
+    :straight t
     :config
     (dashboard-setup-startup-hook))
-
-(setq dashboard-startup-banner "~/.config/screenshots/example.png")
+  
+  (setq dashboard-startup-banner "~/.config/screenshots/example.png")
 #+end_src
 
 #+begin_src emacs-lisp
@@ -297,13 +350,8 @@ emacs-guix
   :config
   (default-text-scale-mode))
 #+end_src
-***  Bufler
-#+begin_src emacs-lisp
-(use-package bufler)
-#+end_src
 *** Remembering window history
 #+begin_src emacs-lisp
-
   (use-package winner
     :after evil
     :config
@@ -353,60 +401,42 @@ emacs-guix
 * Editor
 ** TODO Keybindings
 - [ ] fix the keybindings for the windows  
-***  General 
-#+begin_src emacs-lisp
-  (use-package general
-      :config
-      (general-evil-setup t)
 
-      (general-create-definer rune/leader-keys
-      :keymaps '(normal insert visual emacs)
-      :prefix "SPC"
-      :global-prefix "C-SPC"))
-
-  (rune/leader-keys
-      "cc" 'compile
-      "." 'find-file
-      "," 'ido-switch-buffer
-      "oa" 'org-agenda
-      "oe" 'eshell
-      "ov" 'vterm
-      "hrr" '((lambda () (interactive) (load-file "~/.config/emacs/init.el"))
-                  :which-key "Reload Emacs config")
-      "fr" '(recentf-open-files :which-key "Recent files")
-      "fp" '((lambda () (interactive) (find-file (expand-file-name "~/.config/emacs/config.org")))
-                  :which-key "edit config")
-      "<" 'list-buffers) 
-#+end_src
 *** Evil Mode 
 
 #+begin_src emacs-lisp
 
-    (use-package undo-tree
-      :init
-      (global-undo-tree-mode 1))
+  (use-package undo-tree
+    :straight nil
+    :init
+    (global-undo-tree-mode 1))
 
-      (use-package evil
-          :ensure t
-          :init
-          (setq evil-want-integration t) ;; This is optional since it's already set to t by default.
-          (setq evil-want-keybinding nil)
-          :config
-          (evil-mode 1))
+  (use-package evil
+    :straight nil
+    :init
+    (setq evil-want-integration t) ;; This is optional since it's already set to t by default.
+    (setq evil-want-keybinding nil)
+    (setq evil-undo-system 'undo-tree)
+    :config
+    (evil-mode 1))
 
-      (use-package evil-collection
-          :after evil
-          :ensure t
-          :config
-          (evil-collection-init))
+  (use-package evil-collection
+    :straight nil
+    :after evil
+    :config
+    (evil-collection-init))
 
 #+end_src
+
 *** Key-Chord
+
 #+begin_src emacs-lisp
-  (use-package use-package-chords)
+(use-package key-chord
+  :straight nil
+  :config 
   (setq key-chord-two-keys-delay 0.5)
   (key-chord-define evil-insert-state-map "jk" 'evil-normal-state)
-  (key-chord-mode 1)
+  (key-chord-mode 1))
 #+end_src
 
 *** Which Key
@@ -423,25 +453,30 @@ emacs-guix
 
 *** multi-cursors
 #+begin_src emacs-lisp
-  (straight-use-package
-   '(evil-multiedit :type git :host github :repo "hlissner/evil-multiedit")
-  )
-  (require 'evil-multiedit)
-(evil-multiedit-default-keybinds)
+  (use-package evil-multiedit
+    :straight nil
+    :config 
+    (evil-multiedit-default-keybinds))
+#+end_src
 
+**** guix packages 
+
+#+begin_src scheme
+"evil-multiedit"
 #+end_src
 
 *** evil org
 #+begin_src emacs-lisp
 
-(use-package evil-org
-  :after org
-  :hook ((org-mode . evil-org-mode)
+  (use-package evil-org
+    :straight t
+    :after org
+    :hook ((org-mode . evil-org-mode)
          
-         (evil-org-mode . (lambda () (evil-org-set-key-theme '(navigation todo insert textobjects additional)))))
-  :config
-  (require 'evil-org-agenda)
-  (evil-org-agenda-set-keys))
+           (evil-org-mode . (lambda () (evil-org-set-key-theme '(navigation todo insert textobjects additional)))))
+    :config
+    (require 'evil-org-agenda)
+    (evil-org-agenda-set-keys))
 #+end_src
 
 *** Easy text In and Out
@@ -465,14 +500,15 @@ emacs-guix
 my elves. They type so I don't have to
 
 #+begin_src emacs-lisp
-    (use-package doom-snippets
-      :after yasnippet
-      :straight (doom-snippets :type git :host github :repo "hlissner/doom-snippets" :files ("*.el" "*")))
-    
-(use-package flymake-shellcheck
-  :commands flymake-shellcheck-load
-  :init
-  (add-hook 'sh-mode-hook 'flymake-shellcheck-load))
+  (use-package doom-snippets
+    :straight nil
+    :after yasnippet)
+
+  (use-package flymake-shellcheck
+    :straight nil
+    :commands flymake-shellcheck-load
+    :init
+    (add-hook 'sh-mode-hook 'flymake-shellcheck-load))
 #+end_src 
 
 ** File Templates
@@ -486,7 +522,7 @@ my elves. They type so I don't have to
 
 (custom-set-variables
     '(auto-insert 'other)
-    '(auto-insert-directory "~/autoinsert/")
+    '(auto-insert-directory "~/Templates/")
     '(auto-insert-alist '((("\\.sh\\'" . "Shell script") . ["template.sh" my/autoinsert-yas-expand])
                             (("\\.el\\'" . "Emacs Lisp") . ["template.el" my/autoinsert-yas-expand])
                             (("\\.py\\'" . "Python script") . ["template.py" my/autoinsert-yas-expand])
@@ -495,11 +531,19 @@ my elves. They type so I don't have to
 #+end_src
 
 * TODO Lang
+** sh
+#+begin_src emacs-lisp
+  (use-package flymake-shellcheck
+    :straight t
+    :commands flymake-shellcheck-load
+    :init
+    (add-hook 'sh-mode-hook 'flymake-shellcheck-load))
+#+end_src
 ** TODO Python 
 #+begin_src emacs-lisp
 
   (use-package pyvenv
-    :ensure t
+    :straight nil
     :init
     (setenv "WORKON_HOME" "~/.venvs/")
     :config
@@ -507,13 +551,14 @@ my elves. They type so I don't have to
 
     ;; Set correct Python interpreter
     (setq pyvenv-post-activate-hooks
-          (list (lambda ()
-                  (setq python-shell-interpreter (concat pyvenv-virtual-env "bin/python")))))
+	  (list (lambda ()
+		  (setq python-shell-interpreter (concat pyvenv-virtual-env "bin/python")))))
     (setq pyvenv-post-deactivate-hooks
-          (list (lambda ()
-                  (setq python-shell-interpreter "python3")))))
+	  (list (lambda ()
+		  (setq python-shell-interpreter "python3")))))
 
   (use-package blacken
+    :straight t
     :init
     (setq-default blacken-fast-unsafe t)
     (setq-default blacken-line-length 80)
@@ -537,10 +582,32 @@ my elves. They type so I don't have to
   :config
   (pyvenv-mode 1))
 #+end_src
+** CC
+#+begin_src emacs-lisp
+  (use-package ccls
+    :straight t
+    :hook ((c-mode c++-mode objc-mode cuda-mode) .
+           (lambda () (require 'ccls) (lsp)))
+    (c-mode . flycheck-mode)
+    (c-mode . yas-minor-mode)
+    (c-mode . company-mode)
+    (c++-mode . flycheck-mode)
+    (c++-mode . yas-minor-mode)
+    (c++-mode . company-mode))
+#+end_src
+
+*** clang-format
+#+begin_src emacs-lisp
+  (use-package clang-format
+    :straight t
+    :config
+    (setq clang-format-style-option "google"))
+#+end_src
 
 ** Go
 #+begin_src emacs-lisp
     (use-package go-mode
+      :straight t
       :hook
       (go-mode . lsp-deferred)
       (go-mode . flycheck-mode)
@@ -558,14 +625,15 @@ my elves. They type so I don't have to
 
 #+begin_src emacs-lisp
 
-  (use-package yasnippet-snippets)
+  (use-package yasnippet-snippets :straight t)
   (use-package yasnippet
+    :straight nil
     :diminish yas-minor-mode
     :config
       (yas-reload-all)
       (yas-global-mode)
   )
-  
+
 #+end_src
 
 ** Commenting
@@ -579,17 +647,18 @@ my elves. They type so I don't have to
 ** Flyspell
 #+begin_src emacs-lisp
 
-(use-package flycheck
-  :diminish flycheck-mode
-  :init
-  (setq flycheck-check-syntax-automatically '(save new-line)
-        flycheck-idle-change-delay 5.0
-        flycheck-display-errors-delay 0.9
-        flycheck-highlighting-mode 'symbols
-        flycheck-indication-mode 'left-fringe
-        flycheck-standard-error-navigation t
-        flycheck-deferred-syntax-check nil)
-  )
+  (use-package flycheck
+    :straight nil
+    :diminish flycheck-mode
+    :init
+    (setq flycheck-check-syntax-automatically '(save new-line)
+	  flycheck-idle-change-delay 5.0
+	  flycheck-display-errors-delay 0.9
+	  flycheck-highlighting-mode 'symbols
+	  flycheck-indication-mode 'left-fringe
+	  flycheck-standard-error-navigation t
+	  flycheck-deferred-syntax-check nil)
+    )
 #+end_src
 
 ** Org
@@ -623,71 +692,88 @@ organize your plain life in plain text
 - [ ] Redo the rice 
 #+begin_src emacs-lisp
 
-  (use-package doom-themes)
-  (load-theme 'doom-gruvbox)
+  (use-package doom-themes
+    :straight t
+    :config
+    ;; Global settings (defaults)
+    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+          doom-themes-enable-italic t) ; if nil, italics is universally disabled
+    (load-theme 'doom-one t)
 
-  (set-face-attribute 'default nil :font "JetBrains Mono" :height efs/default-font-size)
+    ;; Enable flashing mode-line on errors
+    (doom-themes-visual-bell-config)
+    ;; Enable custom neotree theme (all-the-icons must be installed!)
+    (doom-themes-neotree-config)
+    ;; or for treemacs users
+    (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+    (doom-themes-treemacs-config)
+    ;; Corrects (and improves) org-mode's native fontification.
+    (doom-themes-org-config))
 
-  ;; Set the fixed pitch face
-  (set-face-attribute 'fixed-pitch nil :font "JetBrains Mono" :height efs/default-font-size)
+      (set-face-attribute 'default nil :font "JetBrains Mono" :height efs/default-font-size)
 
-  ;; Set the variable pitch face
-  (set-face-attribute 'variable-pitch nil :font "Cantarell" :height efs/default-variable-font-size :weight 'regular)
+      ;; Set the fixed pitch face
+      (set-face-attribute 'fixed-pitch nil :font "JetBrains Mono" :height efs/default-font-size)
 
-  ;; Make sure org-indent face is available
-  (require 'org-indent)
+      ;; Set the variable pitch face
+      (set-face-attribute 'variable-pitch nil :font "Cantarell" :height efs/default-variable-font-size :weight 'regular)
+
+      ;; Make sure org-indent face is available
+      (require 'org-indent)
 
 
 #+end_src
 
 **** Better Font faces
    #+begin_src emacs-lisp
-(use-package org-bullets
-  :after org
-  :hook (org-mode . org-bullets-mode)
-  :custom
-  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+     (use-package org-bullets
+       :straight t
+       :after org
+       :hook (org-mode . org-bullets-mode)
+       :custom
+       (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
-     (defun efs/org-font-setup ()
-       ;; Replace list hyphen with dot
-       (font-lock-add-keywords 'org-mode
-                               '(("^ *\\([-]\\) "
-                                  (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+          (defun efs/org-font-setup ()
+            ;; Replace list hyphen with dot
+            (font-lock-add-keywords 'org-mode
+                                    '(("^ *\\([-]\\) "
+                                       (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
 
-       ;; Set faces for heading levels
-       (dolist (face '((org-level-1 . 1.2)
-                       (org-level-2 . 1.1)
-                       (org-level-3 . 1.05)
-                       (org-level-4 . 1.0)
-                       (org-level-5 . 1.1)
-                       (org-level-6 . 1.1)
-                       (org-level-7 . 1.1)
-                       (org-level-8 . 1.1)))
-         (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
+            ;; Set faces for heading levels
+            (dolist (face '((org-level-1 . 1.2)
+                            (org-level-2 . 1.1)
+                            (org-level-3 . 1.05)
+                            (org-level-4 . 1.0)
+                            (org-level-5 . 1.1)
+                            (org-level-6 . 1.1)
+                            (org-level-7 . 1.1)
+                            (org-level-8 . 1.1)))
+              (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
 
-       ;; Ensure that anything that should be fixed-pitch in Org files appears that way
-       (set-face-attribute 'org-block nil    :foreground nil :inherit 'fixed-pitch)
-       (set-face-attribute 'org-table nil    :inherit 'fixed-pitch)
-       (set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
-       (set-face-attribute 'org-code nil     :inherit '(shadow fixed-pitch))
-       (set-face-attribute 'org-table nil    :inherit '(shadow fixed-pitch))
-       (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-       (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-       (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-       (set-face-attribute 'org-checkbox nil  :inherit 'fixed-pitch)
-       (set-face-attribute 'line-number nil :inherit 'fixed-pitch)
-       (set-face-attribute 'line-number-current-line nil :inherit 'fixed-pitch))
+            ;; Ensure that anything that should be fixed-pitch in Org files appears that way
+            (set-face-attribute 'org-block nil    :foreground nil :inherit 'fixed-pitch)
+            (set-face-attribute 'org-table nil    :inherit 'fixed-pitch)
+            (set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
+            (set-face-attribute 'org-code nil     :inherit '(shadow fixed-pitch))
+            (set-face-attribute 'org-table nil    :inherit '(shadow fixed-pitch))
+            (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+            (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+            (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+            (set-face-attribute 'org-checkbox nil  :inherit 'fixed-pitch)
+            (set-face-attribute 'line-number nil :inherit 'fixed-pitch)
+            (set-face-attribute 'line-number-current-line nil :inherit 'fixed-pitch))
    #+end_src
 
 **** Center the Org Buffer
 #+begin_src emacs-lisp
-(defun efs/org-mode-visual-fill ()
-  (setq visual-fill-column-width 100
-        visual-fill-column-center-text t)
-  (visual-fill-column-mode 1))
+  (defun efs/org-mode-visual-fill ()
+    (setq visual-fill-column-width 100
+          visual-fill-column-center-text t)
+    (visual-fill-column-mode 1))
 
-(use-package visual-fill-column
-  :hook (org-mode . efs/org-mode-visual-fill))
+  (use-package visual-fill-column
+    :straight t
+    :hook (org-mode . efs/org-mode-visual-fill))
 #+end_src
 
 **** foo
@@ -811,36 +897,41 @@ organize your plain life in plain text
 #+begin_src emacs-lisp
 
   (use-package org-roam
-    :ensure t
+    :straight nil
     :init
     (setq org-roam-v2-ack t)
     :custom
     (org-roam-directory "~/RoamNotes")
     (org-roam-completion-everywhere t)
     :bind (("C-c n l" . org-roam-buffer-toggle)
-           ("C-c n f" . org-roam-node-find)
-           ("C-c n i" . org-roam-node-insert)
-           :map org-mode-map
-           ("C-M-i"    . completion-at-point))
+	   ("C-c n f" . org-roam-node-find)
+	   ("C-c n i" . org-roam-node-insert)
+	   :map org-mode-map
+	   ("C-M-i"    . completion-at-point))
     :config
     (org-roam-setup))
 
       (rune/leader-keys
-          "nc"  '(:ignore t :which-key "Org Roam")
-          "ncl"  'org-roam-buffer-toggle
-          "ncf" 'org-roam-node-find
-          "nci" 'org-roam-node-insert)
+	  "nc"  '(:ignore t :which-key "Org Roam")
+	  "ncl"  'org-roam-buffer-toggle
+	  "ncf" 'org-roam-node-find
+	  "nci" 'org-roam-node-insert)
 #+end_src 
+
 *** Org Agenda
+
 **** Update Contents on Save 
+
 #+begin_src emacs-lisp
-(use-package org-make-toc
-  :hook (org-mode . org-make-toc-mode))
+  (use-package org-make-toc
+    :straight t
+    :hook (org-mode . org-make-toc-mode))
 #+end_src
 **** Rainbow Delimiters
 #+begin_src emacs-lisp
 
   (use-package rainbow-delimiters
+    :straight t
     :hook (prog-mode . rainbow-delimiters-mode))
 
   (use-package rainbow-mode
@@ -859,59 +950,61 @@ organize your plain life in plain text
 ***** Balance window margins
 #+begin_src emacs-lisp
 
-(use-package olivetti
-:diminish
-:hook (text-mode . olivetti-mode)
-:config
-(setq olivetti-body-width 100)
-)
+  (use-package olivetti
+  :straight t
+  :diminish
+  :hook (text-mode . olivetti-mode)
+  :config
+  (setq olivetti-body-width 100)
+  )
 #+end_src
 ***** folding/unfolding like 0rg-mode
 #+begin_src emacs-lisp
 
-(use-package outshine
-  :config
-(setq LaTeX-section-list '(
-                           ("part" 0)
-                           ("chapter" 1)
-                           ("section" 2)
-                           ("subsection" 3)
-                           ("subsubsection" 4)
-                           ("paragraph" 5)
-                           ("subparagraph" 6)
-                           ("begin" 7)
-                           )
-      )
-(add-hook 'LaTeX-mode-hook #'(lambda ()
-                               (outshine-mode 1)
-                               (setq outline-level #'LaTeX-outline-level)
-                               (setq outline-regexp (LaTeX-outline-regexp t))
-                               (setq outline-heading-alist
-                                     (mapcar (lambda (x)
-                                               (cons (concat "\\" (nth 0 x)) (nth 1 x)))
-                                             LaTeX-section-list))))
+  (use-package outshine
+    :straight nil
+    :config
+  (setq LaTeX-section-list '(
+			     ("part" 0)
+			     ("chapter" 1)
+			     ("section" 2)
+			     ("subsection" 3)
+			     ("subsubsection" 4)
+			     ("paragraph" 5)
+			     ("subparagraph" 6)
+			     ("begin" 7)
+			     )
+	)
+  (add-hook 'LaTeX-mode-hook #'(lambda ()
+				 (outshine-mode 1)
+				 (setq outline-level #'LaTeX-outline-level)
+				 (setq outline-regexp (LaTeX-outline-regexp t))
+				 (setq outline-heading-alist
+				       (mapcar (lambda (x)
+						 (cons (concat "\\" (nth 0 x)) (nth 1 x)))
+					       LaTeX-section-list))))
 
-  )
+    )
 
-    (general-define-key
-      :states '(normal visual)
-      :keymaps 'LaTeX-mode-map
-      "TAB"  '(outshine-cycle :which-key "outshine-cycle")
-  )
+      (general-define-key
+	:states '(normal visual)
+	:keymaps 'LaTeX-mode-map
+	"TAB"  '(outshine-cycle :which-key "outshine-cycle")
+    )
 #+end_src
 ***** Auctex
 #+begin_src emacs-lisp
     ;; latexmk
   (straight-use-package
    '(auctex-latexmk :type git :host github :repo "tom-tan/auctex-latexmk"))
-    ;; company
-    (use-package company-math)
-    (use-package company-auctex)
-    (use-package company-reftex)
+  ;; company
+  (use-package company-math :straight t)
+  (use-package company-auctex :straight t)
+  (use-package company-reftex :straight t)
 
 
     ;;  use cdlatex
-    (use-package cdlatex)
+    (use-package cdlatex :straight t)
 
     ;; https://gist.github.com/saevarb/367d3266b3f302ecc896
     ;; https://piotr.is/2010/emacs-as-the-ultimate-latex-editor/
@@ -962,50 +1055,55 @@ organize your plain life in plain text
 #+end_src
 * Dired
 #+begin_src emacs-lisp
-(require 'dired-x)
-#+end_src
+  (use-package dired
+    :straight nil)
+    #+end_src
 
 ** File Icons
 #+begin_src emacs-lisp
-(use-package all-the-icons-dired
+  (use-package all-the-icons-dired
+    :straight nil
     :hook (dired-mode . all-the-icons-dired-mode))
 
-;; Revert Dired and other buffers
-(setq global-auto-revert-non-file-buffers t)
+  ;; Revert Dired and other buffers
+  (setq global-auto-revert-non-file-buffers t)
 
-;; Revert buffers when the underlying file has changed
-(global-auto-revert-mode 1)
+  ;; Revert buffers when the underlying file has changed
+  (global-auto-revert-mode 1)
 #+end_src
 
 
 ** Hide Dotfiles
 #+begin_src emacs-lisp
-(use-package dired-hide-dotfiles
-  :hook (dired-mode . dired-hide-dotfiles-mode)
-  :config
-  (evil-collection-define-key 'normal 'dired-mode-map
-    "H" 'dired-hide-dotfiles-mode))
+;(use-package dired-hide-dotfiles
+;  :hook (dired-mode . dired-hide-dotfiles-mode)
+;  :config
+;  (evil-collection-define-key 'normal 'dired-mode-map
+;    "H" 'dired-hide-dotfiles-mode))
 #+end_src
 * Clean folders 
 #+begin_src emacs-lisp
 
-;; NOTE: If you want to move everything out of the ~/.emacs.d folder
-;; reliably, set `user-emacs-directory` before loading no-littering!
-;(setq user-emacs-directory "~/.cache/emacs")
+  ;; NOTE: If you want to move everything out of the ~/.emacs.d folder
+  ;; reliably, set `user-emacs-directory` before loading no-littering!
+					  ;(setq user-emacs-directory "~/.cache/emacs")
 
-(use-package no-littering)
+  (use-package no-littering
+    :straight nil )
 
-;; no-littering doesn't set this by default so we must place
-;; auto save files in the same path as it uses for sessions
-(setq auto-save-file-name-transforms
-      `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
+  ;; no-littering doesn't set this by default so we must place
+  ;; auto save files in the same path as it uses for sessions
+  (setq auto-save-file-name-transforms
+	`((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
 
 #+end_src
 
 * Emacs client
+
 #+begin_src emacs-lisp
 (server-start)
 #+end_src
+
 * Term
 
 **  eshell
@@ -1013,35 +1111,65 @@ organize your plain life in plain text
 the elisp shell that works everywhere
 
 
+#+begin_src emacs-lisp
+  (defun efs/configure-eshell ()
+    ;; Save command history when commands are entered
+    (add-hook 'eshell-pre-command-hook 'eshell-save-some-history)
+
+    ;; Truncate buffer for performance
+    (add-to-list 'eshell-output-filter-functions 'eshell-truncate-buffer)
+
+    ;; Bind some useful keys for evil-mode
+    (evil-define-key '(normal insert visual) eshell-mode-map (kbd "C-r") 'counsel-esh-history)
+    (evil-define-key '(normal insert visual) eshell-mode-map (kbd "<home>") 'eshell-bol)
+    (evil-normalize-keymaps)
+
+    (setq eshell-history-size         10000
+          eshell-buffer-maximum-lines 10000
+          eshell-hist-ignoredups t
+          eshell-scroll-to-bottom-on-input t))
+
+  (use-package eshell
+    :hook (eshell-first-time-mode . efs/configure-eshell))
+
+  (use-package eshell-git-prompt
+    :straight t
+    :config
+    (eshell-git-prompt-use-theme 'robbyrussell))
+#+end_src
 ** vterm
 
 The best terminal emulation in Emacs
  
 #+begin_src emacs-lisp
-(use-package vterm
-  :commands vterm
-  :config
-  (setq vterm-max-scrollback 10000))
+  (use-package vterm
+    :straight nil
+    :commands vterm
+    :config
+    (setq vterm-max-scrollback 10000))
 #+end_src
 
 * Tools
 
-
 ** Projectile
 #+begin_src emacs-lisp
-(use-package projectile
-  :diminish projectile-mode
-  :config (projectile-mode)
-  :bind-keymap
-  ("C-c p" . projectile-command-map)
-  :init
-  (when (file-directory-p "~/Projects/Code")
-    (setq projectile-project-search-path '("~/Projects/Code")))
-  (setq projectile-switch-project-action #'projectile-dired))
+  (use-package projectile
+    :straight t
+    :diminish projectile-mode
+    :config (projectile-mode)
+    :bind-keymap
+    ("C-c p" . projectile-command-map)
+    :init
+    (when (file-directory-p "~/Projects/Code")
+      (setq projectile-project-search-path '("~/Projects/Code")))
+    (setq projectile-switch-project-action #'projectile-dired))
 #+end_src
+
 ** Counsel Projectile
+
 #+begin_src emacs-lisp
-(use-package counsel-projectile
+  (use-package counsel-projectile
+    :straight t
     :after projectile
     :config
     (counsel-projectile-mode 1))
@@ -1052,12 +1180,10 @@ a git porcelain for Emacs
 
 #+begin_src emacs-lisp
   (use-package magit
+    :straight nil
     :commands (magit-status magit-get-current-branch)
     :custom
     (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
-
-  (use-package evil-magit
-    :after magit)
 #+end_src
 
 
@@ -1067,40 +1193,42 @@ a git porcelain for Emacs
  
 #+begin_src emacs-lisp
 
-(use-package lsp-mode
-  :commands (lsp lsp-deferred)
-  :hook 
-  (lsp-mode . lsp-enable-which-key-integration)
-  :custom
-  (lsp-diagnostics-provider :capf)
-  (lsp-headerline-breadcrumb-enable t)
-  (lsp-headerline-breadcrumb-segments '(project file symbols))
-  (lsp-lens-enable nil)
-  (lsp-disabled-clients '((python-mode . pyls)))
-  :init
-  (setq lsp-keymap-prefix "C-c l") ;; Or 'C-l', 's-l'
-  :config
-  )
-(use-package lsp-ui
-  :hook (lsp-mode . lsp-ui-mode)
-  :after lsp-mode
-  :custom
-  (lsp-ui-doc-show-with-cursor nil)
-  :config
-  (setq lsp-ui-doc-position 'bottom)
-  )
+  (use-package lsp-mode
+    :straight t
+    :commands (lsp lsp-deferred)
+    :hook 
+    (lsp-mode . lsp-enable-which-key-integration)
+    :custom
+    (lsp-diagnostics-provider :capf)
+    (lsp-headerline-breadcrumb-enable t)
+    (lsp-headerline-breadcrumb-segments '(project file symbols))
+    (lsp-lens-enable nil)
+    (lsp-disabled-clients '((python-mode . pyls)))
+    :init
+    (setq lsp-keymap-prefix "C-c l") ;; Or 'C-l', 's-l'
+    :config
+    )
+  (use-package lsp-ui
+    :straight t
+    :hook (lsp-mode . lsp-ui-mode)
+    :after lsp-mode
+    :custom
+    (lsp-ui-doc-show-with-cursor nil)
+    :config
+    (setq lsp-ui-doc-position 'bottom)
+    )
 
 
-(general-define-key
- :states '(normal visual)
- :keymaps 'lsp-mode-map
- :prefix "SPC"
-  "d" '(lsp-find-definition :which-key "find-definitions")
-  "r" '(lsp-find-references :which-key "find-references")
-  "h" '(lsp-describe-thing-at-point :which-key "help-detailed")
-  "e" '(lsp-ui-flycheck-list :which-key "flycheck-list")
-  "o" 'counsel-imenu
-  "x" 'lsp-execute-code-action)
+  (general-define-key
+   :states '(normal visual)
+   :keymaps 'lsp-mode-map
+   :prefix "SPC"
+    "d" '(lsp-find-definition :which-key "find-definitions")
+    "r" '(lsp-find-references :which-key "find-references")
+    "h" '(lsp-describe-thing-at-point :which-key "help-detailed")
+    "e" '(lsp-ui-flycheck-list :which-key "flycheck-list")
+    "o" 'counsel-imenu
+    "x" 'lsp-execute-code-action)
 #+end_src
 - [ ] Finish setting up autocomplete, linter, and lsp for python mode, C, and Go
 #+begin_src emacs-lisp
@@ -1110,17 +1238,15 @@ a git porcelain for Emacs
 
 ** PDF
 
-PDF enhancements
+PDF enhancements. 
 
 #+begin_src emacs-lisp
-    (use-package pdf-tools
-        :straight nil
-        :load-path "/home/user/.guix-profile/share/emacs/site-lisp/pdf-tools-0.91"
+  (use-package pdf-tools
+    :straight nil
     :magic ("%PDF" . pdf-view-mode)
-  :config
-  (pdf-tools-install)
-  (setq-default pdf-view-display-size 'fit-page)
-  )
+    :config
+    (pdf-tools-install)
+    (setq-default pdf-view-display-size 'fit-page))
 
 #+end_src
 
@@ -1131,10 +1257,10 @@ emacs-pdf-tools
 #+end_src
 
 * email
+
 #+begin_src emacs-lisp
   (use-package mu4e
-    :straight nil
-    :load-path "/home/user/.guix-profile/share/emacs/site-lisp/mu4e")
+    :straight nil)
 #+end_src
 
 ** GUIX packages
@@ -1151,29 +1277,36 @@ Emacs as an RSS reader
 
 #+begin_src emacs-lisp
 
-(use-package elfeed
-  :commands elfeed
-  :config
-  (setq elfeed-feeds
-    '("https://nullprogram.com/feed/"
-      "https://ambrevar.xyz/atom.xml"
-      "https://guix.gnu.org/feeds/blog.atom"
-      "https://valdyas.org/fading/feed/"
-      "https://www.reddit.com/r/emacs/.rss")))
+  (use-package elfeed
+    :straight nil
+    :commands elfeed
+    :config
+    (setq elfeed-feeds
+          '("https://nullprogram.com/feed/"
+            "https://ambrevar.xyz/atom.xml"
+            "https://guix.gnu.org/feeds/blog.atom"
+            "https://valdyas.org/fading/feed/"
+            "https://www.reddit.com/r/emacs/.rss")))
+#+end_src
+
+*** guix packages
+
+#+begin_src scheme
+"emacs-elfeed"
 #+end_src
 
 ** Twittering Mode
   
 #+begin_src emacs-lisp
   (use-package twittering-mode
-    :straight nil
-    :load-path "/home/user/.guix-profile/share/emacs/site-lisp/twittering-mode-3.1.0")
-
-  (setq twittering-use-master-password t)
-
+    :straight t
+    :custom
+    (setq twittering-use-master-password t)
+    (setq twittering-allow-insecure-server-cert t)) 
 #+end_src
 
 *** Guix Packages
+
 #+begin_src scheme
 emacs-twittering-mode
 #+end_src
@@ -1192,7 +1325,7 @@ emacs-twittering-mode
 #+begin_src emacs-lisp
   ;; Set default connection mode to SSH
   (setq tramp-default-method "ssh")
-(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
 #+end_src
 
 * Spellcheck
@@ -1204,9 +1337,8 @@ emacs-twittering-mode
 #+begin_src emacs-lisp
   (use-package writegood-mode
     :straight nil
-    :load-path "/home/user/.guix-profile/share/emacs/site-lisp/writegood-mode-2.0.4")
-  (require 'writegood-mode)
-  (global-set-key "\C-cg" 'writegood-mode)
+    :config 
+    (global-set-key "\C-cg" 'writegood-mode))
 #+end_src
 
 *** Guix Packages
@@ -1219,12 +1351,16 @@ emacs-writegood-mode
 tasing you for misspelling mispelling
 
 #+begin_src emacs-lisp
-(use-package flyspell-correct
-      :after flyspell
-      :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
+  (use-package flyspell-correct
+    :straight nil
+    :after flyspell
+    :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
 #+end_src 
 
 
-
+*** Guix Packages
+#+begin_src scheme
+"emacs-flyspell-correct"
+#+end_src
 
 

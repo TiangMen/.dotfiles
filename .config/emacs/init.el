@@ -44,26 +44,51 @@
 (defvar efs/default-variable-font-size 120)
 
 (defvar bootstrap-version)
-(let ((bootstrap-file
-	(expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-	(bootstrap-version 5))
-    (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-	(url-retrieve-synchronously
-	    "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-	    'silent 'inhibit-cookies)
-	(goto-char (point-max))
-	(eval-print-last-sexp)))
-    (load bootstrap-file nil 'nomessage))
+    (let ((bootstrap-file
+            (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+            (bootstrap-version 5))
+        (unless (file-exists-p bootstrap-file)
+        (with-current-buffer
+            (url-retrieve-synchronously
+                "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+                'silent 'inhibit-cookies)
+            (goto-char (point-max))
+            (eval-print-last-sexp)))
+        (load bootstrap-file nil 'nomessage))
 
 ;; Use straight.el for use-package expressions
 (straight-use-package 'use-package)
-(setq straight-use-package-by-default t)
+(setq use-package-always-ensure nil)
+;; Load the helper package for commands like `straight-x-clean-unused-repos'
+(require 'straight-x)
 
 (use-package guix-emacs
-    :straight nil
-    :load-path "/home/user/.guix-profile/share/emacs/site-lisp/guix-emacs")
-  
+   :straight nil)
+
+(use-package general
+      :straight nil
+      :config
+      (general-evil-setup t)
+
+      (general-create-definer rune/leader-keys
+      :keymaps '(normal insert visual emacs)
+      :prefix "SPC"
+      :global-prefix "C-SPC"))
+
+  (rune/leader-keys
+      "cc" 'compile
+      "." 'find-file
+      "," 'ido-switch-buffer
+      "oa" 'org-agenda
+      "oe" 'eshell
+      "ov" 'vterm
+      "hrr" '((lambda () (interactive) (load-file "~/.config/emacs/init.el"))
+                  :which-key "Reload Emacs config")
+      "fr" '(recentf-open-files :which-key "Recent files")
+      "fp" '((lambda () (interactive) (find-file (expand-file-name "~/.config/emacs/config.org")))
+                  :which-key "edit config")
+      "<" 'list-buffers) 
+
 (rune/leader-keys
   "G"  '(:ignore t :which-key "Guix")
   "Gg" '(guix :which-key "Guix")
@@ -73,7 +98,7 @@
   "GP" '(guix-pull :which-key "pull"))
 
 (use-package vertico
-    :ensure t
+    :straight nil
     :bind (:map vertico-map
            ("C-j" . vertico-next)
            ("C-k" . vertico-previous)
@@ -91,7 +116,6 @@
 
   (use-package marginalia
     :after vertico
-    :ensure t
     :custom
     (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
     :init
@@ -105,39 +129,59 @@
         completion-category-overrides '((file (styles . (partial-completion))))))
 
 (use-package company
-      :after lsp-mode
-      :hook (lsp-mode . company-mode)
-      :bind (:map company-active-map
-             ("<tab>" . company-complete-selection))
-            (:map lsp-mode-map
-             ("<tab>" . company-indent-or-complete-common))
-      :custom
-      (company-minimum-prefix-length 1)
-      (company-idle-delay 0.0))
+    :straight t
+    :after lsp-mode
+    :hook (lsp-mode . company-mode)
+    :bind (:map company-active-map
+                ("<tab>" . company-complete-selection))
+    (:map lsp-mode-map
+          ("<tab>" . company-indent-or-complete-common))
+    :custom
+    (company-minimum-prefix-length 1)
+    (company-idle-delay 0.0))
 
-    (use-package company-box
-      :hook (company-mode . company-box-mode))
+  (use-package company-box
+    :straight t
+    :hook (company-mode . company-box-mode))
 
-    (use-package company-prescient
-      :after company
-      :config
-      (company-prescient-mode 1)
-      (prescient-persist-mode)
-      )
+  (use-package company-prescient
+    :straight t
+    :after company
+    :config
+    (company-prescient-mode 1)
+    (prescient-persist-mode))
 
-(add-hook 'after-init-hook 'global-company-mode)
+  (add-hook 'after-init-hook 'global-company-mode)
 
-(use-package all-the-icons)
+ (setq ispell-program-name "hunspell")
+  ;; you could set `ispell-dictionary` instead but `ispell-local-dictionary' has higher priority
+  (setq ispell-local-dictionary "en_US")
+  (setq ispell-local-dictionary-alist '(("en_US" "[[:alpha:]]" "[^[:alpha:]]" "[']" nil ("-d" "en_US,en_US-med") nil utf-8)))
+  ;; new variable `ispell-hunspell-dictionary-alist' is defined in Emacs
+  ;; If it's nil, Emacs tries to automatically set up the dictionaries.
+  (when (boundp 'ispell-hunspell-dictionary-alist)
+    (setq ispell-hunspell-dictionary-alist ispell-local-dictionary-alist))  
+
+  (defun my-text-mode-hook ()
+  (setq-local company-backends
+              '((company-dabbrev company-ispell :separate)
+                company-files)))
+
+(add-hook 'text-mode-hook #'my-text-mode-hook)
+
+(use-package all-the-icons
+  :straight nil)
 
 (use-package doom-modeline
+  :straight nil
   :init (doom-modeline-mode 1)
   :custom ((doom-modeline-height 15)))
 
 ;; Or if you use use-package
 (use-package dashboard
-    :ensure t
-    :config
-    (dashboard-setup-startup-hook))
+  :straight t
+  :config
+  (dashboard-setup-startup-hook))
 
 (setq dashboard-startup-banner "~/.config/screenshots/example.png")
 
@@ -155,8 +199,6 @@
   :defer 1
   :config
   (default-text-scale-mode))
-
-(use-package bufler)
 
 (use-package winner
   :after evil
@@ -195,51 +237,32 @@
     (rune/leader-keys
         "ct" 'toggle-transparency)
 
-(use-package general
-    :config
-    (general-evil-setup t)
-
-    (general-create-definer rune/leader-keys
-    :keymaps '(normal insert visual emacs)
-    :prefix "SPC"
-    :global-prefix "C-SPC"))
-
-(rune/leader-keys
-    "cc" 'compile
-    "." 'find-file
-    "," 'ido-switch-buffer
-    "oa" 'org-agenda
-    "oe" 'eshell
-    "ov" 'vterm
-    "hrr" '((lambda () (interactive) (load-file "~/.config/emacs/init.el"))
-                :which-key "Reload Emacs config")
-    "fr" '(recentf-open-files :which-key "Recent files")
-    "fp" '((lambda () (interactive) (find-file (expand-file-name "~/.config/emacs/config.org")))
-                :which-key "edit config")
-    "<" 'list-buffers)
-
 (use-package undo-tree
+  :straight nil
   :init
   (global-undo-tree-mode 1))
 
-  (use-package evil
-      :ensure t
-      :init
-      (setq evil-want-integration t) ;; This is optional since it's already set to t by default.
-      (setq evil-want-keybinding nil)
-      :config
-      (evil-mode 1))
+(use-package evil
+  :straight nil
+  :init
+  (setq evil-want-integration t) ;; This is optional since it's already set to t by default.
+  (setq evil-want-keybinding nil)
+  (setq evil-undo-system 'undo-tree)
+  :config
+  (evil-mode 1))
 
-  (use-package evil-collection
-      :after evil
-      :ensure t
-      :config
-      (evil-collection-init))
+(use-package evil-collection
+  :straight nil
+  :after evil
+  :config
+  (evil-collection-init))
 
-(use-package use-package-chords)
-(setq key-chord-two-keys-delay 0.5)
-(key-chord-define evil-insert-state-map "jk" 'evil-normal-state)
-(key-chord-mode 1)
+(use-package key-chord
+  :straight nil
+  :config 
+  (setq key-chord-two-keys-delay 0.5)
+  (key-chord-define evil-insert-state-map "jk" 'evil-normal-state)
+  (key-chord-mode 1))
 
 (use-package which-key
   :init (which-key-mode)
@@ -247,16 +270,16 @@
   :config
   (setq which-key-idle-delay 1))
 
-(straight-use-package
-   '(evil-multiedit :type git :host github :repo "hlissner/evil-multiedit")
-  )
-  (require 'evil-multiedit)
-(evil-multiedit-default-keybinds)
+(use-package evil-multiedit
+  :straight nil
+  :config 
+  (evil-multiedit-default-keybinds))
 
 (use-package evil-org
+  :straight t
   :after org
   :hook ((org-mode . evil-org-mode)
-         
+
          (evil-org-mode . (lambda () (evil-org-set-key-theme '(navigation todo insert textobjects additional)))))
   :config
   (require 'evil-org-agenda)
@@ -274,10 +297,11 @@
   "ts" '(hydra-text-scale/body :which-key "scale text"))
 
 (use-package doom-snippets
-      :after yasnippet
-      :straight (doom-snippets :type git :host github :repo "hlissner/doom-snippets" :files ("*.el" "*")))
-    
+  :straight nil
+  :after yasnippet)
+
 (use-package flymake-shellcheck
+  :straight nil
   :commands flymake-shellcheck-load
   :init
   (add-hook 'sh-mode-hook 'flymake-shellcheck-load))
@@ -288,15 +312,21 @@
 
 (custom-set-variables
     '(auto-insert 'other)
-    '(auto-insert-directory "~/autoinsert/")
+    '(auto-insert-directory "~/Templates/")
     '(auto-insert-alist '((("\\.sh\\'" . "Shell script") . ["template.sh" my/autoinsert-yas-expand])
                             (("\\.el\\'" . "Emacs Lisp") . ["template.el" my/autoinsert-yas-expand])
                             (("\\.py\\'" . "Python script") . ["template.py" my/autoinsert-yas-expand])
                             (("[mM]akefile\\'" . "Makefile") . ["Makefile" my/autoinsert-yas-expand])
                             )))
 
+(use-package flymake-shellcheck
+  :straight t
+  :commands flymake-shellcheck-load
+  :init
+  (add-hook 'sh-mode-hook 'flymake-shellcheck-load))
+
 (use-package pyvenv
-  :ensure t
+  :straight nil
   :init
   (setenv "WORKON_HOME" "~/.venvs/")
   :config
@@ -304,13 +334,14 @@
 
   ;; Set correct Python interpreter
   (setq pyvenv-post-activate-hooks
-        (list (lambda ()
-                (setq python-shell-interpreter (concat pyvenv-virtual-env "bin/python")))))
+	(list (lambda ()
+		(setq python-shell-interpreter (concat pyvenv-virtual-env "bin/python")))))
   (setq pyvenv-post-deactivate-hooks
-        (list (lambda ()
-                (setq python-shell-interpreter "python3")))))
+	(list (lambda ()
+		(setq python-shell-interpreter "python3")))))
 
 (use-package blacken
+  :straight t
   :init
   (setq-default blacken-fast-unsafe t)
   (setq-default blacken-line-length 80)
@@ -332,7 +363,24 @@
   :config
   (pyvenv-mode 1))
 
+(use-package ccls
+  :straight t
+  :hook ((c-mode c++-mode objc-mode cuda-mode) .
+         (lambda () (require 'ccls) (lsp)))
+  (c-mode . flycheck-mode)
+  (c-mode . yas-minor-mode)
+  (c-mode . company-mode)
+  (c++-mode . flycheck-mode)
+  (c++-mode . yas-minor-mode)
+  (c++-mode . company-mode))
+
+(use-package clang-format
+  :straight t
+  :config
+  (setq clang-format-style-option "google"))
+
 (use-package go-mode
+    :straight t
     :hook
     (go-mode . lsp-deferred)
     (go-mode . flycheck-mode)
@@ -345,8 +393,9 @@
             (setq tab-width 4)
             (setq indent-tabs-mode 1)))
 
-(use-package yasnippet-snippets)
+(use-package yasnippet-snippets :straight t)
 (use-package yasnippet
+  :straight nil
   :diminish yas-minor-mode
   :config
     (yas-reload-all)
@@ -357,15 +406,16 @@
   :bind ("M-/" . evilnc-comment-or-uncomment-lines))
 
 (use-package flycheck
+  :straight nil
   :diminish flycheck-mode
   :init
   (setq flycheck-check-syntax-automatically '(save new-line)
-        flycheck-idle-change-delay 5.0
-        flycheck-display-errors-delay 0.9
-        flycheck-highlighting-mode 'symbols
-        flycheck-indication-mode 'left-fringe
-        flycheck-standard-error-navigation t
-        flycheck-deferred-syntax-check nil)
+	flycheck-idle-change-delay 5.0
+	flycheck-display-errors-delay 0.9
+	flycheck-highlighting-mode 'symbols
+	flycheck-indication-mode 'left-fringe
+	flycheck-standard-error-navigation t
+	flycheck-deferred-syntax-check nil)
   )
 
 ;; This is needed as of Org 9.2
@@ -386,21 +436,37 @@
     (lambda () (add-hook 'after-save-hook #'org-babel-tangle
 		    :append :local)))
 
-(use-package doom-themes)
-(load-theme 'doom-gruvbox)
+(use-package doom-themes
+  :straight t
+  :config
+  ;; Global settings (defaults)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-one t)
 
-(set-face-attribute 'default nil :font "JetBrains Mono" :height efs/default-font-size)
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+  ;; Enable custom neotree theme (all-the-icons must be installed!)
+  (doom-themes-neotree-config)
+  ;; or for treemacs users
+  (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+  (doom-themes-treemacs-config)
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
 
-;; Set the fixed pitch face
-(set-face-attribute 'fixed-pitch nil :font "JetBrains Mono" :height efs/default-font-size)
+    (set-face-attribute 'default nil :font "JetBrains Mono" :height efs/default-font-size)
 
-;; Set the variable pitch face
-(set-face-attribute 'variable-pitch nil :font "Cantarell" :height efs/default-variable-font-size :weight 'regular)
+    ;; Set the fixed pitch face
+    (set-face-attribute 'fixed-pitch nil :font "JetBrains Mono" :height efs/default-font-size)
 
-;; Make sure org-indent face is available
-(require 'org-indent)
+    ;; Set the variable pitch face
+    (set-face-attribute 'variable-pitch nil :font "Cantarell" :height efs/default-variable-font-size :weight 'regular)
+
+    ;; Make sure org-indent face is available
+    (require 'org-indent)
 
 (use-package org-bullets
+  :straight t
   :after org
   :hook (org-mode . org-bullets-mode)
   :custom
@@ -442,6 +508,7 @@
   (visual-fill-column-mode 1))
 
 (use-package visual-fill-column
+  :straight t
   :hook (org-mode . efs/org-mode-visual-fill))
 
 (defun efs/org-mode-setup ()
@@ -558,30 +625,32 @@
  (efs/org-font-setup))
 
 (use-package org-roam
-  :ensure t
+  :straight nil
   :init
   (setq org-roam-v2-ack t)
   :custom
   (org-roam-directory "~/RoamNotes")
   (org-roam-completion-everywhere t)
   :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
-         ("C-c n i" . org-roam-node-insert)
-         :map org-mode-map
-         ("C-M-i"    . completion-at-point))
+	 ("C-c n f" . org-roam-node-find)
+	 ("C-c n i" . org-roam-node-insert)
+	 :map org-mode-map
+	 ("C-M-i"    . completion-at-point))
   :config
   (org-roam-setup))
 
     (rune/leader-keys
-        "nc"  '(:ignore t :which-key "Org Roam")
-        "ncl"  'org-roam-buffer-toggle
-        "ncf" 'org-roam-node-find
-        "nci" 'org-roam-node-insert)
+	"nc"  '(:ignore t :which-key "Org Roam")
+	"ncl"  'org-roam-buffer-toggle
+	"ncf" 'org-roam-node-find
+	"nci" 'org-roam-node-insert)
 
 (use-package org-make-toc
+  :straight t
   :hook (org-mode . org-make-toc-mode))
 
 (use-package rainbow-delimiters
+  :straight t
   :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package rainbow-mode
@@ -593,6 +662,7 @@
          js2-mode))
 
 (use-package olivetti
+:straight t
 :diminish
 :hook (text-mode . olivetti-mode)
 :config
@@ -600,26 +670,27 @@
 )
 
 (use-package outshine
+  :straight nil
   :config
 (setq LaTeX-section-list '(
-                           ("part" 0)
-                           ("chapter" 1)
-                           ("section" 2)
-                           ("subsection" 3)
-                           ("subsubsection" 4)
-                           ("paragraph" 5)
-                           ("subparagraph" 6)
-                           ("begin" 7)
-                           )
+			   ("part" 0)
+			   ("chapter" 1)
+			   ("section" 2)
+			   ("subsection" 3)
+			   ("subsubsection" 4)
+			   ("paragraph" 5)
+			   ("subparagraph" 6)
+			   ("begin" 7)
+			   )
       )
 (add-hook 'LaTeX-mode-hook #'(lambda ()
-                               (outshine-mode 1)
-                               (setq outline-level #'LaTeX-outline-level)
-                               (setq outline-regexp (LaTeX-outline-regexp t))
-                               (setq outline-heading-alist
-                                     (mapcar (lambda (x)
-                                               (cons (concat "\\" (nth 0 x)) (nth 1 x)))
-                                             LaTeX-section-list))))
+			       (outshine-mode 1)
+			       (setq outline-level #'LaTeX-outline-level)
+			       (setq outline-regexp (LaTeX-outline-regexp t))
+			       (setq outline-heading-alist
+				     (mapcar (lambda (x)
+					       (cons (concat "\\" (nth 0 x)) (nth 1 x)))
+					     LaTeX-section-list))))
 
   )
 
@@ -632,14 +703,14 @@
 ;; latexmk
 (straight-use-package
  '(auctex-latexmk :type git :host github :repo "tom-tan/auctex-latexmk"))
-  ;; company
-  (use-package company-math)
-  (use-package company-auctex)
-  (use-package company-reftex)
+;; company
+(use-package company-math :straight t)
+(use-package company-auctex :straight t)
+(use-package company-reftex :straight t)
 
 
   ;;  use cdlatex
-  (use-package cdlatex)
+  (use-package cdlatex :straight t)
 
   ;; https://gist.github.com/saevarb/367d3266b3f302ecc896
   ;; https://piotr.is/2010/emacs-as-the-ultimate-latex-editor/
@@ -688,10 +759,12 @@
           (setq auctex-latexmk-inherit-TeX-PDF-mode t)
       )
 
-(require 'dired-x)
+(use-package dired
+  :straight nil)
 
 (use-package all-the-icons-dired
-    :hook (dired-mode . all-the-icons-dired-mode))
+  :straight nil
+  :hook (dired-mode . all-the-icons-dired-mode))
 
 ;; Revert Dired and other buffers
 (setq global-auto-revert-non-file-buffers t)
@@ -699,17 +772,18 @@
 ;; Revert buffers when the underlying file has changed
 (global-auto-revert-mode 1)
 
-(use-package dired-hide-dotfiles
-  :hook (dired-mode . dired-hide-dotfiles-mode)
-  :config
-  (evil-collection-define-key 'normal 'dired-mode-map
-    "H" 'dired-hide-dotfiles-mode))
+;(use-package dired-hide-dotfiles
+;  :hook (dired-mode . dired-hide-dotfiles-mode)
+;  :config
+;  (evil-collection-define-key 'normal 'dired-mode-map
+;    "H" 'dired-hide-dotfiles-mode))
 
 ;; NOTE: If you want to move everything out of the ~/.emacs.d folder
 ;; reliably, set `user-emacs-directory` before loading no-littering!
-;(setq user-emacs-directory "~/.cache/emacs")
+					;(setq user-emacs-directory "~/.cache/emacs")
 
-(use-package no-littering)
+(use-package no-littering
+  :straight nil )
 
 ;; no-littering doesn't set this by default so we must place
 ;; auto save files in the same path as it uses for sessions
@@ -718,12 +792,39 @@
 
 (server-start)
 
+(defun efs/configure-eshell ()
+  ;; Save command history when commands are entered
+  (add-hook 'eshell-pre-command-hook 'eshell-save-some-history)
+
+  ;; Truncate buffer for performance
+  (add-to-list 'eshell-output-filter-functions 'eshell-truncate-buffer)
+
+  ;; Bind some useful keys for evil-mode
+  (evil-define-key '(normal insert visual) eshell-mode-map (kbd "C-r") 'counsel-esh-history)
+  (evil-define-key '(normal insert visual) eshell-mode-map (kbd "<home>") 'eshell-bol)
+  (evil-normalize-keymaps)
+
+  (setq eshell-history-size         10000
+        eshell-buffer-maximum-lines 10000
+        eshell-hist-ignoredups t
+        eshell-scroll-to-bottom-on-input t))
+
+(use-package eshell
+  :hook (eshell-first-time-mode . efs/configure-eshell))
+
+(use-package eshell-git-prompt
+  :straight t
+  :config
+  (eshell-git-prompt-use-theme 'robbyrussell))
+
 (use-package vterm
+  :straight nil
   :commands vterm
   :config
   (setq vterm-max-scrollback 10000))
 
 (use-package projectile
+  :straight t
   :diminish projectile-mode
   :config (projectile-mode)
   :bind-keymap
@@ -734,19 +835,19 @@
   (setq projectile-switch-project-action #'projectile-dired))
 
 (use-package counsel-projectile
-    :after projectile
-    :config
-    (counsel-projectile-mode 1))
+  :straight t
+  :after projectile
+  :config
+  (counsel-projectile-mode 1))
 
 (use-package magit
+  :straight nil
   :commands (magit-status magit-get-current-branch)
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
-(use-package evil-magit
-  :after magit)
-
 (use-package lsp-mode
+  :straight t
   :commands (lsp lsp-deferred)
   :hook 
   (lsp-mode . lsp-enable-which-key-integration)
@@ -761,6 +862,7 @@
   :config
   )
 (use-package lsp-ui
+  :straight t
   :hook (lsp-mode . lsp-ui-mode)
   :after lsp-mode
   :custom
@@ -784,33 +886,31 @@
 
 
 (use-package pdf-tools
-      :straight nil
-      :load-path "/home/user/.guix-profile/share/emacs/site-lisp/pdf-tools-0.91"
+  :straight nil
   :magic ("%PDF" . pdf-view-mode)
-:config
-(pdf-tools-install)
-(setq-default pdf-view-display-size 'fit-page)
-)
+  :config
+  (pdf-tools-install)
+  (setq-default pdf-view-display-size 'fit-page))
 
 (use-package mu4e
-  :straight nil
-  :load-path "/home/user/.guix-profile/share/emacs/site-lisp/mu4e")
+  :straight nil)
 
 (use-package elfeed
+  :straight nil
   :commands elfeed
   :config
   (setq elfeed-feeds
-    '("https://nullprogram.com/feed/"
-      "https://ambrevar.xyz/atom.xml"
-      "https://guix.gnu.org/feeds/blog.atom"
-      "https://valdyas.org/fading/feed/"
-      "https://www.reddit.com/r/emacs/.rss")))
+        '("https://nullprogram.com/feed/"
+          "https://ambrevar.xyz/atom.xml"
+          "https://guix.gnu.org/feeds/blog.atom"
+          "https://valdyas.org/fading/feed/"
+          "https://www.reddit.com/r/emacs/.rss")))
 
 (use-package twittering-mode
-  :straight nil
-  :load-path "/home/user/.guix-profile/share/emacs/site-lisp/twittering-mode-3.1.0")
-
-(setq twittering-use-master-password t)
+  :straight t
+  :custom
+  (setq twittering-use-master-password t)
+  (setq twittering-allow-insecure-server-cert t))
 
 (use-package elcord
   :straight t
@@ -820,15 +920,15 @@
   (elcord-mode))
 
 ;; Set default connection mode to SSH
-  (setq tramp-default-method "ssh")
+(setq tramp-default-method "ssh")
 (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
 
 (use-package writegood-mode
   :straight nil
-  :load-path "/home/user/.guix-profile/share/emacs/site-lisp/writegood-mode-2.0.4")
-(require 'writegood-mode)
-(global-set-key "\C-cg" 'writegood-mode)
+  :config 
+  (global-set-key "\C-cg" 'writegood-mode))
 
 (use-package flyspell-correct
-      :after flyspell
-      :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
+  :straight nil
+  :after flyspell
+  :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))

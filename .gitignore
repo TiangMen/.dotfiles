@@ -13,3 +13,5 @@ history
 .config/emacs/auto-save-list/
 .config/emacs/projectile-bookmarks.eld
 .config/emacs/elpa/
+.config/emacs/tramp
+.config/emacs/transient/
