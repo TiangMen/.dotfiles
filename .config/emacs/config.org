@@ -61,15 +61,19 @@ I have the time to configure Emacs to my liking. This is my config.
     - [[#org-agenda][Org Agenda]]
       - [[#update-contents-on-save][Update Contents on Save]]
       - [[#rainbow-delimiters][Rainbow Delimiters]]
-      - [[#latex][Latex]]
-        - [[#balance-window-margins][Balance window margins]]
-        - [[#foldingunfolding-like-0rg-mode][folding/unfolding like 0rg-mode]]
-        - [[#auctex][Auctex]]
-- [[#dired][Dired]]
-  - [[#file-icons][File Icons]]
-  - [[#hide-dotfiles][Hide Dotfiles]]
-- [[#clean-folders][Clean folders]]
-- [[#emacs-client][Emacs client]]
+    - [[#pomodoro][Pomodoro]]
+  - [[#latex][Latex]]
+    - [[#balance-window-margins][Balance window margins]]
+    - [[#foldingunfolding-like-0rg-mode][folding/unfolding like 0rg-mode]]
+    - [[#auctex][Auctex]]
+  - [[#ledger][Ledger]]
+- [[#emacs][Emacs]]
+  - [[#dired][Dired]]
+    - [[#file-icons][File Icons]]
+    - [[#hide-dotfiles][Hide Dotfiles]]
+  - [[#clean-folders][Clean folders]]
+  - [[#emacs-client][Emacs client]]
+  - [[#info][Info]]
 - [[#term][Term]]
   - [[#eshell][eshell]]
   - [[#vterm][vterm]]
@@ -80,14 +84,19 @@ I have the time to configure Emacs to my liking. This is my config.
   - [[#lsp][LSP]]
   - [[#pdf][PDF]]
     - [[#guix-packages][GUIX packages]]
+  - [[#epub][Epub]]
+  - [[#web][Web]]
+  - [[#pass][Pass]]
 - [[#email][email]]
   - [[#guix-packages][GUIX packages]]
 - [[#app][app]]
   - [[#elfeed][Elfeed]]
-    - [[#guix-packages][guix packages]]
+    - [[#elfeed-tube][Elfeed Tube]]
+    - [[#elfeed-rss][Elfeed RSS]]
+      - [[#guix-packages][guix packages]]
   - [[#twittering-mode][Twittering Mode]]
-    - [[#guix-packages][Guix Packages]]
   - [[#discord][Discord]]
+  - [[#leetcode][Leetcode]]
 - [[#tramp][Tramp]]
 - [[#spellcheck][Spellcheck]]
   - [[#grammar][Grammar]]
@@ -182,29 +191,30 @@ I have the time to configure Emacs to my liking. This is my config.
 
 ***  General 
 #+begin_src emacs-lisp
-    (use-package general
-        :straight nil
-        :config
-        (general-evil-setup t)
+  (use-package general
+    :straight nil
+    :config
+    (general-evil-setup t)
 
-        (general-create-definer rune/leader-keys
-        :keymaps '(normal insert visual emacs)
-        :prefix "SPC"
-        :global-prefix "C-SPC"))
+    (general-create-definer rune/leader-keys
+      :keymaps '(normal insert visual emacs)
+      :prefix "SPC"
+      :global-prefix "C-SPC"))
 
-    (rune/leader-keys
-        "cc" 'compile
-        "." 'find-file
-        "," 'ido-switch-buffer
-        "oa" 'org-agenda
-        "oe" 'eshell
-        "ov" 'vterm
-        "hrr" '((lambda () (interactive) (load-file "~/.config/emacs/init.el"))
-                    :which-key "Reload Emacs config")
-        "fr" '(recentf-open-files :which-key "Recent files")
-        "fp" '((lambda () (interactive) (find-file (expand-file-name "~/.config/emacs/config.org")))
-                    :which-key "edit config")
-        "<" 'list-buffers) 
+  (rune/leader-keys
+    "cc" 'compile
+    "." 'find-file
+    "," 'ido-switch-buffer
+    "oa" 'org-agenda
+    "oe" 'eshell
+    "ov" 'vterm
+    "hrr" '((lambda () (interactive) (load-file "~/.config/emacs/init.el"))
+            :which-key "Reload Emacs config")
+    "fr" '(recentf-open-files :which-key "Recent files")
+    "fp" '((lambda () (interactive) (find-file (expand-file-name "~/.config/emacs/config.org")))
+           :which-key "edit config")
+    "fP" '(find-file "~/.config/emacs" :which-key "edit config") ; doom emacs config dir
+    "<" 'list-buffers) 
 
   (rune/leader-keys
     "G"  '(:ignore t :which-key "Guix")
@@ -539,6 +549,7 @@ my elves. They type so I don't have to
     :init
     (add-hook 'sh-mode-hook 'flymake-shellcheck-load))
 #+end_src
+
 ** TODO Python 
 #+begin_src emacs-lisp
 
@@ -551,12 +562,13 @@ my elves. They type so I don't have to
 
     ;; Set correct Python interpreter
     (setq pyvenv-post-activate-hooks
-	  (list (lambda ()
-		  (setq python-shell-interpreter (concat pyvenv-virtual-env "bin/python")))))
+          (list (lambda ()
+                  (setq python-shell-interpreter (concat pyvenv-virtual-env "bin/python")))))
     (setq pyvenv-post-deactivate-hooks
-	  (list (lambda ()
-		  (setq python-shell-interpreter "python3")))))
+          (list (lambda ()
+                  (setq python-shell-interpreter "python3")))))
 
+  (setq python-shell-interpreter "python3")
   (use-package blacken
     :straight t
     :init
@@ -564,9 +576,11 @@ my elves. They type so I don't have to
     (setq-default blacken-line-length 80)
     )
   (use-package python-mode
+    :straight t
     :hook
     (python-mode . pyvenv-mode)
     (python-mode . flycheck-mode)
+    (python-mode . flymake-mode)
     (python-mode . company-mode)
     (python-mode . blacken-mode)
     (python-mode . yas-minor-mode)
@@ -582,6 +596,7 @@ my elves. They type so I don't have to
   :config
   (pyvenv-mode 1))
 #+end_src
+
 ** CC
 #+begin_src emacs-lisp
   (use-package ccls
@@ -589,6 +604,7 @@ my elves. They type so I don't have to
     :hook ((c-mode c++-mode objc-mode cuda-mode) .
            (lambda () (require 'ccls) (lsp)))
     (c-mode . flycheck-mode)
+    (c-mode . flymake-mode)
     (c-mode . yas-minor-mode)
     (c-mode . company-mode)
     (c++-mode . flycheck-mode)
@@ -602,37 +618,42 @@ my elves. They type so I don't have to
     :straight t
     :config
     (setq clang-format-style-option "google"))
+
+  (global-set-key [C-M-tab] 'clang-format-region)
+
 #+end_src
 
 ** Go
 #+begin_src emacs-lisp
-    (use-package go-mode
-      :straight t
-      :hook
-      (go-mode . lsp-deferred)
-      (go-mode . flycheck-mode)
-      (go-mode . company-mode)
-    )
+  (use-package go-mode
+    :straight t
+    :hook
+    (go-mode . lsp-deferred)
+    (go-mode . flycheck-mode)
+    (go-mode . company-mode))
 
   (add-hook 'go-mode-hook
             (lambda ()
               (add-hook 'before-save-hook 'gofmt-before-save)
               (setq tab-width 4)
               (setq indent-tabs-mode 1)))
+  
+  (add-hook 'go-mode-hook (lambda ()
+                          (local-set-key (kbd "C-c C-r") 'go-remove-unused-imports)))
 #+end_src
 
 ** Yasnippet
 
 #+begin_src emacs-lisp
 
-  (use-package yasnippet-snippets :straight t)
+  (use-package yasnippet-snippets
+    :straight t)
   (use-package yasnippet
     :straight nil
     :diminish yas-minor-mode
     :config
-      (yas-reload-all)
-      (yas-global-mode)
-  )
+    (yas-reload-all)
+    (yas-global-mode))
 
 #+end_src
 
@@ -668,101 +689,104 @@ organize your plain life in plain text
 *** Org Babel
 
 #+begin_src emacs-lisp
-      ;; This is needed as of Org 9.2
-      (require 'org-tempo)
+  ;; This is needed as of Org 9.2
+  (require 'org-tempo)
 
-      (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-      (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-      (add-to-list 'org-structure-template-alist '("py" . "src python"))
+  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+  (add-to-list 'org-structure-template-alist '("py" . "src python"))
 
-      (org-babel-do-load-languages
-      'org-babel-load-languages
-      '((emacs-lisp . t)
-      (python . t)))
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((emacs-lisp . t)
+     (python . t)))
 
-      (setq org-confirm-babel-evaluate nil)
+  (setq org-confirm-babel-evaluate nil)
 
-      (add-hook 'org-mode-hook
-	  (lambda () (add-hook 'after-save-hook #'org-babel-tangle
-			  :append :local)))
+  (add-hook 'org-mode-hook
+            (lambda () (add-hook 'after-save-hook #'org-babel-tangle
+                                 :append :local)))
 
 #+end_src
 
-*** TODO Org Rice
-- [ ] Redo the rice 
+*** Org Rice
+CLOSED: [2022-06-18 Sat 11:14]
 #+begin_src emacs-lisp
+  ;; Configure the Modus Themes' appearance
+  (setq modus-themes-mode-line '(accented borderless)
+        modus-themes-bold-constructs t
+        modus-themes-italic-constructs t
+        modus-themes-fringes 'subtle
+        modus-themes-tabs-accented t
+        modus-themes-paren-match '(bold intense)
+        modus-themes-prompts '(bold intense)
+        modus-themes-completions 'opinionated
+        modus-themes-org-blocks 'tinted-background
+        modus-themes-scale-headings t
+        modus-themes-region '(bg-only)
+        modus-themes-headings
+        '((1 . (rainbow overline background 1.4))
+          (2 . (rainbow background 1.3))
+          (3 . (rainbow bold 1.2))
+          (t . (semilight 1.1))))
 
-  (use-package doom-themes
-    :straight t
-    :config
-    ;; Global settings (defaults)
-    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-          doom-themes-enable-italic t) ; if nil, italics is universally disabled
-    (load-theme 'doom-one t)
+  ;; Load the dark theme by default
+  (load-theme 'modus-vivendi t)
 
-    ;; Enable flashing mode-line on errors
-    (doom-themes-visual-bell-config)
-    ;; Enable custom neotree theme (all-the-icons must be installed!)
-    (doom-themes-neotree-config)
-    ;; or for treemacs users
-    (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
-    (doom-themes-treemacs-config)
-    ;; Corrects (and improves) org-mode's native fontification.
-    (doom-themes-org-config))
 
-      (set-face-attribute 'default nil :font "JetBrains Mono" :height efs/default-font-size)
+  (set-face-attribute 'default nil :font "JetBrains Mono" :height efs/default-font-size)
 
-      ;; Set the fixed pitch face
-      (set-face-attribute 'fixed-pitch nil :font "JetBrains Mono" :height efs/default-font-size)
+  ;; Set the fixed pitch face
+  (set-face-attribute 'fixed-pitch nil :font "JetBrains Mono" :height efs/default-font-size)
 
-      ;; Set the variable pitch face
-      (set-face-attribute 'variable-pitch nil :font "Cantarell" :height efs/default-variable-font-size :weight 'regular)
+  ;; Set the variable pitch face
+  (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height efs/default-variable-font-size :weight 'regular)
 
-      ;; Make sure org-indent face is available
-      (require 'org-indent)
-
+  ;; Make sure org-indent face is available
+  (require 'org-indent)
 
 #+end_src
 
 **** Better Font faces
    #+begin_src emacs-lisp
-     (use-package org-bullets
-       :straight t
+     (use-package org-superstar
+       :straight nil
        :after org
-       :hook (org-mode . org-bullets-mode)
+       :hook (org-mode . org-superstar-mode)
        :custom
-       (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+       (org-superstar-remove-leading-stars t)
+       (org-superstar-headline-bullets-list '("◉" "○" "●" "○" "●" "○" "●")))
 
-          (defun efs/org-font-setup ()
-            ;; Replace list hyphen with dot
-            (font-lock-add-keywords 'org-mode
-                                    '(("^ *\\([-]\\) "
-                                       (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+     ;; Increase the size of various headings
+     (set-face-attribute 'org-document-title nil :font "Iosevka Aile" :weight 'bold :height 1.3)
+     (dolist (face '((org-level-1 . 1.3)
+                     (org-level-2 . 1.1)
+                     (org-level-3 . 1.05)
+                     (org-level-4 . 1.0)
+                     (org-level-5 . 1.1)
+                     (org-level-6 . 1.1)
+                     (org-level-7 . 1.1)
+                     (org-level-8 . 1.1)))
+       (set-face-attribute (car face) nil :font "Iosevka Aile" :weight 'medium :height (cdr face)))
 
-            ;; Set faces for heading levels
-            (dolist (face '((org-level-1 . 1.2)
-                            (org-level-2 . 1.1)
-                            (org-level-3 . 1.05)
-                            (org-level-4 . 1.0)
-                            (org-level-5 . 1.1)
-                            (org-level-6 . 1.1)
-                            (org-level-7 . 1.1)
-                            (org-level-8 . 1.1)))
-              (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
+     ;; Make sure org-indent face is available
+     (require 'org-indent)
 
-            ;; Ensure that anything that should be fixed-pitch in Org files appears that way
-            (set-face-attribute 'org-block nil    :foreground nil :inherit 'fixed-pitch)
-            (set-face-attribute 'org-table nil    :inherit 'fixed-pitch)
-            (set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
-            (set-face-attribute 'org-code nil     :inherit '(shadow fixed-pitch))
-            (set-face-attribute 'org-table nil    :inherit '(shadow fixed-pitch))
-            (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-            (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-            (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-            (set-face-attribute 'org-checkbox nil  :inherit 'fixed-pitch)
-            (set-face-attribute 'line-number nil :inherit 'fixed-pitch)
-            (set-face-attribute 'line-number-current-line nil :inherit 'fixed-pitch))
-   #+end_src
+     ;; Ensure that anything that should be fixed-pitch in Org files appears that way
+     (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+     (set-face-attribute 'org-table nil  :inherit 'fixed-pitch)
+     (set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
+     (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+     (set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch))
+     (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+     (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+     (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+     (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
+
+     ;; Get rid of the background on column views
+     (set-face-attribute 'org-column nil :background nil)
+     (set-face-attribute 'org-column-title nil :background nil)
+#+end_src
 
 **** Center the Org Buffer
 #+begin_src emacs-lisp
@@ -779,123 +803,123 @@ organize your plain life in plain text
 **** foo
 #+begin_src emacs-lisp
 
-   (defun efs/org-mode-setup ()
-       (org-indent-mode)
-       (variable-pitch-mode 1)
-       (visual-line-mode 1))
+    (defun efs/org-mode-setup ()
+      (org-indent-mode)
+      (variable-pitch-mode 1)
+      (visual-line-mode 1))
 
-   (use-package org :straight (:type built-in)
-       :commands (org-capture org-agenda)
-       :hook (org-mode . efs/org-mode-setup)
-    (org-mode . flyspell-mode)
-       :config
+    (use-package org :straight (:type built-in)
+      :commands (org-capture org-agenda)
+      :hook (org-mode . efs/org-mode-setup)
+      (org-mode . flyspell-mode)
+      :config
 
-    (setq org-directory "~/Projects/Code/OrgFiles")
-    (setq org-agenda-files '("Tasks.org" "Birthdays.org"))
+      (setq org-directory "~/Projects/Code/OrgFiles")
+      (setq org-agenda-files '("Tasks.org" "Birthdays.org"))
 
 
-    (setq org-agenda-start-with-log-mode t)
-    (setq org-log-done 'time)
-    (setq org-log-into-drawer t)
+      (setq org-agenda-start-with-log-mode t)
+      (setq org-log-done 'time)
+      (setq org-log-into-drawer t)
 
-   (setq org-todo-keywords
-      '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
-        (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
-   ;; Configure custom agenda views
-   (setq org-tag-alist
-     '((:startgroup)
-        ; Put mutually exclusive tags here
-        (:endgroup)
-        ("@errand" . ?E)
-        ("@home" . ?H)
-        ("@work" . ?W)
-        ("agenda" . ?a)
-        ("planning" . ?p)
-        ("publish" . ?P)
-        ("batch" . ?b)
-        ("note" . ?n)
-        ("idea" . ?i)))
+      (setq org-todo-keywords
+	    '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
+	      (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
+      ;; Configure custom agenda views
+      (setq org-tag-alist
+	    '((:startgroup)
+					    ; Put mutually exclusive tags here
+	      (:endgroup)
+	      ("@errand" . ?E)
+	      ("@home" . ?H)
+	      ("@work" . ?W)
+	      ("agenda" . ?a)
+	      ("planning" . ?p)
+	      ("publish" . ?P)
+	      ("batch" . ?b)
+	      ("note" . ?n)
+	      ("idea" . ?i)))
 
-   (setq org-agenda-custom-commands
-    '(("d" "Dashboard"
-      ((agenda "" ((org-deadline-warning-days 7)))
-       (todo "NEXT"
-         ((org-agenda-overriding-header "Next Tasks")))
-       (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
+      (setq org-agenda-custom-commands
+	    '(("d" "Dashboard"
+	       ((agenda "" ((org-deadline-warning-days 7)))
+		(todo "NEXT"
+		      ((org-agenda-overriding-header "Next Tasks")))
+		(tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
 
-     ("n" "Next Tasks"
-      ((todo "NEXT"
-         ((org-agenda-overriding-header "Next Tasks")))))
+	      ("n" "Next Tasks"
+	       ((todo "NEXT"
+		      ((org-agenda-overriding-header "Next Tasks")))))
 
-     ("W" "Work Tasks" tags-todo "+work-email")
+	      ("W" "Work Tasks" tags-todo "+work-email")
 
-     ;; Low-effort next actions
-     ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
-      ((org-agenda-overriding-header "Low Effort Tasks")
-       (org-agenda-max-todos 20)
-       (org-agenda-files org-agenda-files)))
+	      ;; Low-effort next actions
+	      ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
+	       ((org-agenda-overriding-header "Low Effort Tasks")
+		(org-agenda-max-todos 20)
+		(org-agenda-files org-agenda-files)))
 
-     ("w" "Workflow Status"
-      ((todo "WAIT"
-             ((org-agenda-overriding-header "Waiting on External")
-              (org-agenda-files org-agenda-files)))
-       (todo "REVIEW"
-             ((org-agenda-overriding-header "In Review")
-              (org-agenda-files org-agenda-files)))
-       (todo "PLAN"
-             ((org-agenda-overriding-header "In Planning")
-              (org-agenda-todo-list-sublevels nil)
-              (org-agenda-files org-agenda-files)))
-       (todo "BACKLOG"
-             ((org-agenda-overriding-header "Project Backlog")
-              (org-agenda-todo-list-sublevels nil)
-              (org-agenda-files org-agenda-files)))
-       (todo "READY"
-             ((org-agenda-overriding-header "Ready for Work")
-              (org-agenda-files org-agenda-files)))
-       (todo "ACTIVE"
-             ((org-agenda-overriding-header "Active Projects")
-              (org-agenda-files org-agenda-files)))
-       (todo "COMPLETED"
-             ((org-agenda-overriding-header "Completed Projects")
-              (org-agenda-files org-agenda-files)))
-       (todo "CANC"
-             ((org-agenda-overriding-header "Cancelled Projects")
-              (org-agenda-files org-agenda-files)))))))
-       (setq org-ellipsis " ▾")
+	      ("w" "Workflow Status"
+	       ((todo "WAIT"
+		      ((org-agenda-overriding-header "Waiting on External")
+		       (org-agenda-files org-agenda-files)))
+		(todo "REVIEW"
+		      ((org-agenda-overriding-header "In Review")
+		       (org-agenda-files org-agenda-files)))
+		(todo "PLAN"
+		      ((org-agenda-overriding-header "In Planning")
+		       (org-agenda-todo-list-sublevels nil)
+		       (org-agenda-files org-agenda-files)))
+		(todo "BACKLOG"
+		      ((org-agenda-overriding-header "Project Backlog")
+		       (org-agenda-todo-list-sublevels nil)
+		       (org-agenda-files org-agenda-files)))
+		(todo "READY"
+		      ((org-agenda-overriding-header "Ready for Work")
+		       (org-agenda-files org-agenda-files)))
+		(todo "ACTIVE"
+		      ((org-agenda-overriding-header "Active Projects")
+		       (org-agenda-files org-agenda-files)))
+		(todo "COMPLETED"
+		      ((org-agenda-overriding-header "Completed Projects")
+		       (org-agenda-files org-agenda-files)))
+		(todo "CANC"
+		      ((org-agenda-overriding-header "Cancelled Projects")
+		       (org-agenda-files org-agenda-files)))))))
+      (setq org-ellipsis " ▾")
 
-  (setq org-capture-templates
-     `(("t" "Tasks / Projects")
-       ("tt" "Task" entry (file+olp "~/Projects/Code/OrgFiles/Tasks.org" "Inbox")
-            "* TODO %?\n  %U\n  %a\n  %i" :empty-lines 1)
+      (setq org-capture-templates
+	    `(("t" "Tasks / Projects")
+	      ("tt" "Task" entry (file+olp "~/Projects/Code/OrgFiles/Tasks.org" "Inbox")
+	       "* TODO %?\n  %U\n  %a\n  %i" :empty-lines 1)
 
-       ("j" "Journal Entries")
-       ("jj" "Journal" entry
-            (file+olp+datetree "~/Projects/Code/OrgFiles/Journal.org")
-            "\n* %<%I:%M %p> - Journal :journal:\n\n%?\n\n"
-            ;; ,(dw/read-file-as-string "~/Notes/Templates/Daily.org")
-            :clock-in :clock-resume
-            :empty-lines 1)
-       ("jm" "Meeting" entry
-            (file+olp+datetree "~/Projects/Code/OrgFiles/Journal.org")
-            "* %<%I:%M %p> - %a :meetings:\n\n%?\n\n"
-            :clock-in :clock-resume
-            :empty-lines 1)
+	      ("j" "Journal Entries")
+	      ("jj" "Journal" entry
+	       (file+olp+datetree "~/Projects/Code/OrgFiles/Journal.org")
+	       "\n* %<%I:%M %p> - Journal :journal:\n\n%?\n\n"
+	       ;; ,(dw/read-file-as-string "~/Notes/Templates/Daily.org")
+	       :clock-in :clock-resume
+	       :empty-lines 1)
+	      ("jm" "Meeting" entry
+	       (file+olp+datetree "~/Projects/Code/OrgFiles/Journal.org")
+	       "* %<%I:%M %p> - %a :meetings:\n\n%?\n\n"
+	       :clock-in :clock-resume
+	       :empty-lines 1)
 
-       ("w" "Workflows")
-       ("we" "Checking Email" entry (file+olp+datetree "~/Projects/Code/OrgFiles/Journal.org")
-            "* Checking Email :email:\n\n%?" :clock-in :clock-resume :empty-lines 1)
+	      ("w" "Workflows")
+	      ("we" "Checking Email" entry (file+olp+datetree "~/Projects/Code/OrgFiles/Journal.org")
+	       "* Checking Email :email:\n\n%?" :clock-in :clock-resume :empty-lines 1)
 
-       ("m" "Metrics Capture")
-       ("mw" "Weight" table-line (file+headline "~/Projects/Code/OrgFiles/Metrics.org" "Weight")
-        "| %U | %^{Weight} | %^{Notes} |" :kill-buffer t)))
+	      ("m" "Metrics Capture")
+	      ("mw" "Weight" table-line (file+headline "~/Projects/Code/OrgFiles/Metrics.org" "Weight")
+	       "| %U | %^{Weight} | %^{Notes} |" :kill-buffer t)))
 
-   (efs/org-font-setup))
+ ;     (efs/org-font-setup)
+  )
 #+end_src
 
 *** Org Roam
 #+begin_src emacs-lisp
-
   (use-package org-roam
     :straight nil
     :init
@@ -904,18 +928,18 @@ organize your plain life in plain text
     (org-roam-directory "~/RoamNotes")
     (org-roam-completion-everywhere t)
     :bind (("C-c n l" . org-roam-buffer-toggle)
-	   ("C-c n f" . org-roam-node-find)
-	   ("C-c n i" . org-roam-node-insert)
-	   :map org-mode-map
-	   ("C-M-i"    . completion-at-point))
+           ("C-c n f" . org-roam-node-find)
+           ("C-c n i" . org-roam-node-insert)
+           :map org-mode-map
+           ("C-M-i"    . completion-at-point))
     :config
     (org-roam-setup))
 
-      (rune/leader-keys
-	  "nc"  '(:ignore t :which-key "Org Roam")
-	  "ncl"  'org-roam-buffer-toggle
-	  "ncf" 'org-roam-node-find
-	  "nci" 'org-roam-node-insert)
+  (rune/leader-keys
+    "nc"  '(:ignore t :which-key "Org Roam")
+    "ncl"  'org-roam-buffer-toggle
+    "ncf" 'org-roam-node-find
+    "nci" 'org-roam-node-insert)
 #+end_src 
 
 *** Org Agenda
@@ -942,59 +966,78 @@ organize your plain life in plain text
            typescript-mode
            js2-mode))
 #+end_src
+*** Pomodoro 
+:LOGBOOK:
+CLOCK: [2022-06-26 Sun 16:05]--[2022-06-26 Sun 16:30] =>  0:25
+:END:
+#+begin_src emacs-lisp
+  (use-package org-pomodoro
+    :straight t
+    :after org
+    :config
+    (setq org-pomodoro-start-sound "~/.dotfiles/.config/emacs/sounds/focus_bell.wav")
+    (setq org-pomodoro-short-break-sound "~/.dotfiles/.config/emacs/sounds/three_beeps.wav")
+    (setq org-pomodoro-long-break-sound "~/.dotfiles/.config/emacs/sounds/three_beeps.wav")
+    (setq org-pomodoro-finished-sound "~/.dotfiles/.config/emacs/sounds/meditation_bell.wav")
 
-**** TODO Latex
+    (rune/leader-keys
+      "op"  '(org-pomodoro :which-key "pomodoro")))
+#+end_src
+
+** TODO Latex
 
  Writing papers in Emacs has never been so fun
  
-***** Balance window margins
+*** Balance window margins
 #+begin_src emacs-lisp
 
   (use-package olivetti
-  :straight t
-  :diminish
-  :hook (text-mode . olivetti-mode)
-  :config
-  (setq olivetti-body-width 100)
-  )
+    :straight t
+    :diminish
+    :hook (text-mode . olivetti-mode)
+    :config
+    (setq olivetti-body-width 100))
+  
 #+end_src
-***** folding/unfolding like 0rg-mode
+*** folding/unfolding like 0rg-mode
+:LOGBOOK:
+CLOCK: [2022-06-26 Sun 15:03]--[2022-06-26 Sun 15:03] =>  0:00
 #+begin_src emacs-lisp
 
   (use-package outshine
     :straight nil
     :config
-  (setq LaTeX-section-list '(
-			     ("part" 0)
-			     ("chapter" 1)
-			     ("section" 2)
-			     ("subsection" 3)
-			     ("subsubsection" 4)
-			     ("paragraph" 5)
-			     ("subparagraph" 6)
-			     ("begin" 7)
-			     )
-	)
-  (add-hook 'LaTeX-mode-hook #'(lambda ()
-				 (outshine-mode 1)
-				 (setq outline-level #'LaTeX-outline-level)
-				 (setq outline-regexp (LaTeX-outline-regexp t))
-				 (setq outline-heading-alist
-				       (mapcar (lambda (x)
-						 (cons (concat "\\" (nth 0 x)) (nth 1 x)))
-					       LaTeX-section-list))))
+    (setq LaTeX-section-list '(
+                               ("part" 0)
+                               ("chapter" 1)
+                               ("section" 2)
+                               ("subsection" 3)
+                               ("subsubsection" 4)
+                               ("paragraph" 5)
+                               ("subparagraph" 6)
+                               ("begin" 7)
+                               )
+          )
+    (add-hook 'LaTeX-mode-hook #'(lambda ()
+                                   (outshine-mode 1)
+                                   (setq outline-level #'LaTeX-outline-level)
+                                   (setq outline-regexp (LaTeX-outline-regexp t))
+                                   (setq outline-heading-alist
+                                         (mapcar (lambda (x)
+                                                   (cons (concat "\\" (nth 0 x)) (nth 1 x)))
+                                                 LaTeX-section-list))))
 
     )
 
-      (general-define-key
-	:states '(normal visual)
-	:keymaps 'LaTeX-mode-map
-	"TAB"  '(outshine-cycle :which-key "outshine-cycle")
-    )
+  (general-define-key
+   :states '(normal visual)
+   :keymaps 'LaTeX-mode-map
+   "TAB"  '(outshine-cycle :which-key "outshine-cycle")
+   )
 #+end_src
-***** Auctex
+*** Auctex
 #+begin_src emacs-lisp
-    ;; latexmk
+  ;; latexmk
   (straight-use-package
    '(auctex-latexmk :type git :host github :repo "tom-tan/auctex-latexmk"))
   ;; company
@@ -1003,63 +1046,73 @@ organize your plain life in plain text
   (use-package company-reftex :straight t)
 
 
-    ;;  use cdlatex
-    (use-package cdlatex :straight t)
+  ;;  use cdlatex
+  (use-package cdlatex :straight t)
 
-    ;; https://gist.github.com/saevarb/367d3266b3f302ecc896
-    ;; https://piotr.is/2010/emacs-as-the-ultimate-latex-editor/
+  ;; https://gist.github.com/saevarb/367d3266b3f302ecc896
+  ;; https://piotr.is/2010/emacs-as-the-ultimate-latex-editor/
 
-    (use-package auctex
-        :defer t
-        :custom
-        (olivetti-body-width 100)
-        (cdlatex-simplify-sub-super-scripts nil)
-        :bind (:map LaTeX-mode-map
-                    ("C-c C-e" . cdlatex-environment)
+  (use-package auctex
+    :defer t
+    :custom
+    (olivetti-body-width 100)
+    (cdlatex-simplify-sub-super-scripts nil)
+    :bind (:map LaTeX-mode-map
+                ("C-c C-e" . cdlatex-environment)
                 )
-        :hook
-            (LaTeX-mode . olivetti-mode)
-            (LaTeX-mode . TeX-PDF-mode)
-            (LaTeX-mode . company-mode)
-            (LaTeX-mode . flyspell-mode)
-            (LaTeX-mode . flycheck-mode)
-            (LaTeX-mode . LaTeX-math-mode)
-            (LaTeX-mode . turn-on-reftex)
-            (LaTeX-mode . TeX-source-correlate-mode)
-            (LaTeX-mode . try/latex-mode-setup)
-            (LaTeX-mode . turn-on-cdlatex)
+    :hook
+    (LaTeX-mode . olivetti-mode)
+    (LaTeX-mode . TeX-PDF-mode)
+    (LaTeX-mode . company-mode)
+    (LaTeX-mode . flyspell-mode)
+    (LaTeX-mode . flycheck-mode)
+    (LaTeX-mode . LaTeX-math-mode)
+    (LaTeX-mode . turn-on-reftex)
+    (LaTeX-mode . TeX-source-correlate-mode)
+    (LaTeX-mode . try/latex-mode-setup)
+    (LaTeX-mode . turn-on-cdlatex)
 
-        :config
-            (setq TeX-auto-save t)
-            (setq TeX-parse-self t)
-            (setq-default TeX-master nil)
-            (setq TeX-save-query nil)
+    :config
+    (setq TeX-auto-save t)
+    (setq TeX-parse-self t)
+    (setq-default TeX-master nil)
+    (setq TeX-save-query nil)
 
-            (setq reftex-plug-into-AUCTeX t)
+    (setq reftex-plug-into-AUCTeX t)
 
-            ;; pdftools
-            ;; https://emacs.stackexchange.com/questions/21755/use-pdfview-as-default-auctex-pdf-viewer#21764
-            (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
-                TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
-                TeX-source-correlate-start-server t) ;; not sure if last line is neccessary
-            ;; to have the buffer refresh after compilation,
-            ;; very important so that PDFView refesh itself after comilation
-            (add-hook 'TeX-after-compilation-finished-functions
-                        #'TeX-revert-document-buffer)
+    ;; pdftools
+    ;; https://emacs.stackexchange.com/questions/21755/use-pdfview-as-default-auctex-pdf-viewer#21764
+    (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+          TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
+          TeX-source-correlate-start-server t) ;; not sure if last line is neccessary
+    ;; to have the buffer refresh after compilation,
+    ;; very important so that PDFView refesh itself after comilation
+    (add-hook 'TeX-after-compilation-finished-functions
+              #'TeX-revert-document-buffer)
 
-            ;; latexmk
-            (require 'auctex-latexmk)
-            (auctex-latexmk-setup)
-            (setq auctex-latexmk-inherit-TeX-PDF-mode t)
-        )
+    ;; latexmk
+    (require 'auctex-latexmk)
+    (auctex-latexmk-setup)
+    (setq auctex-latexmk-inherit-TeX-PDF-mode t)
+    )
 #+end_src
-* Dired
+
+** Ledger 
+Be audit you can be
+#+begin_src emacs-lisp
+  (use-package ledger-mode
+    :straight nil)
+#+end_src
+
+* Emacs
+
+** Dired
 #+begin_src emacs-lisp
   (use-package dired
     :straight nil)
-    #+end_src
+#+end_src
 
-** File Icons
+*** File Icons
 #+begin_src emacs-lisp
   (use-package all-the-icons-dired
     :straight nil
@@ -1073,7 +1126,7 @@ organize your plain life in plain text
 #+end_src
 
 
-** Hide Dotfiles
+*** Hide Dotfiles
 #+begin_src emacs-lisp
 ;(use-package dired-hide-dotfiles
 ;  :hook (dired-mode . dired-hide-dotfiles-mode)
@@ -1081,10 +1134,10 @@ organize your plain life in plain text
 ;  (evil-collection-define-key 'normal 'dired-mode-map
 ;    "H" 'dired-hide-dotfiles-mode))
 #+end_src
-* Clean folders 
+** Clean folders 
 #+begin_src emacs-lisp
 
-  ;; NOTE: If you want to move everything out of the ~/.emacs.d folder
+  ;; NOTE: If you want to move everything out of the ~/.config/emacs folder
   ;; reliably, set `user-emacs-directory` before loading no-littering!
 					  ;(setq user-emacs-directory "~/.cache/emacs")
 
@@ -1098,12 +1151,13 @@ organize your plain life in plain text
 
 #+end_src
 
-* Emacs client
+** Emacs client
 
 #+begin_src emacs-lisp
 (server-start)
 #+end_src
 
+** Info
 * Term
 
 **  eshell
@@ -1186,7 +1240,6 @@ a git porcelain for Emacs
     (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 #+end_src
 
-
 ** TODO LSP
 
  M-x vscode
@@ -1235,7 +1288,6 @@ a git porcelain for Emacs
 
 #+end_src
 
-
 ** PDF
 
 PDF enhancements. 
@@ -1256,6 +1308,40 @@ PDF enhancements.
 emacs-pdf-tools
 #+end_src
 
+** Epub 
+
+#+begin_src emacs-lisp
+  (use-package epub
+    :load-path "~/.guix-profile/share/emacs/site-lisp/nov-el-0.3.4"
+    :straight nil)
+#+end_src
+** Web
+#+begin_src emacs-lisp
+  (use-package simple-httpd
+    :straight t)
+
+  (use-package htmlize
+    :straight t)
+#+end_src
+** Pass
+#+begin_src emacs-lisp
+
+  (use-package password-store
+    :straight t
+    :config
+    (setq password-store-password-length 12))
+
+  (use-package auth-source-pass
+    :straight t
+    :config
+    (auth-source-pass-enable))
+
+  (rune/leader-keys
+    "ap" '(:ignore t :which-key "pass")
+    "app" 'password-store-copy
+    "api" 'password-store-insert)
+#+end_src
+
 * email
 
 #+begin_src emacs-lisp
@@ -1273,6 +1359,34 @@ emacs-mu4e-alert
 
 ** Elfeed
 
+*** Elfeed Tube
+
+#+begin_src emacs-lisp
+  (use-package elfeed-tube
+    :straight (:host github :repo "karthink/elfeed-tube")
+    :after elfeed
+    :demand t
+    :config
+    ;; (setq elfeed-tube-auto-save-p nil) ;; t is auto-save (not default)
+    ;; (setq elfeed-tube-auto-fetch-p t) ;;  t is auto-fetch (default)
+    (elfeed-tube-setup)
+
+    :bind (:map elfeed-show-mode-map
+                ("F" . elfeed-tube-fetch)
+                ([remap save-buffer] . elfeed-tube-save)
+                :map elfeed-search-mode-map
+                ("F" . elfeed-tube-fetch)
+                ([remap save-buffer] . elfeed-tube-save)))
+
+  (use-package elfeed-tube-mpv
+    :straight (:host github :repo "karthink/elfeed-tube")
+    :bind (:map elfeed-show-mode-map
+                ("C-c C-f" . elfeed-tube-mpv-follow-mode)
+                ("C-c C-w" . elfeed-tube-mpv-where)))
+#+end_src
+
+*** Elfeed RSS
+
 Emacs as an RSS reader
 
 #+begin_src emacs-lisp
@@ -1285,30 +1399,37 @@ Emacs as an RSS reader
           '("https://nullprogram.com/feed/"
             "https://ambrevar.xyz/atom.xml"
             "https://guix.gnu.org/feeds/blog.atom"
+            "https://xkcd.com/atom.xml"
             "https://valdyas.org/fading/feed/"
             "https://www.reddit.com/r/emacs/.rss")))
 #+end_src
 
-*** guix packages
+**** guix packages
 
 #+begin_src scheme
 "emacs-elfeed"
 #+end_src
 
+
 ** Twittering Mode
   
 #+begin_src emacs-lisp
+  
+  (use-package shrface
+  :straight t
+  :config
+  (shrface-basic)
+  (shrface-trial)
+  (shrface-default-keybindings) ; setup default keybindings
+  (setq shrface-href-versatile t))
   (use-package twittering-mode
     :straight t
     :custom
     (setq twittering-use-master-password t)
-    (setq twittering-allow-insecure-server-cert t)) 
-#+end_src
-
-*** Guix Packages
-
-#+begin_src scheme
-emacs-twittering-mode
+    (setq twittering-allow-insecure-server-cert t)
+    :config
+    (require 'shrface)
+    ) 
 #+end_src
 
 ** Discord
@@ -1321,7 +1442,25 @@ emacs-twittering-mode
   (elcord-mode))
 #+end_src
 
+** Leetcode
+#+begin_src emacs-lisp
+  (use-package leetcode
+    :straight t
+    :config
+    (setq leetcode-save-solutions t)
+    (setq leetcode-directory "~/leetcode")
+    (setq leetcode-prefer-language "python3")
+    )
+
+#+end_src
+This app uses ctable
+#+begin_src emacs-lisp
+  (use-package ctable
+    :straight nil)
+#+end_src
+
 * Tramp
+
 #+begin_src emacs-lisp
   ;; Set default connection mode to SSH
   (setq tramp-default-method "ssh")
@@ -1342,13 +1481,14 @@ emacs-twittering-mode
 #+end_src
 
 *** Guix Packages
+
 #+begin_src scheme
 emacs-writegood-mode
 #+end_src
 
 ** Spelling
 
-tasing you for misspelling mispelling
+Tasing you for misspelling mispelling
 
 #+begin_src emacs-lisp
   (use-package flyspell-correct
@@ -1362,5 +1502,8 @@ tasing you for misspelling mispelling
 #+begin_src scheme
 "emacs-flyspell-correct"
 #+end_src
+
+
+
 
 
