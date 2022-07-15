@@ -87,8 +87,6 @@ I have the time to configure Emacs to my liking. This is my config.
   - [[#epub][Epub]]
   - [[#web][Web]]
   - [[#pass][Pass]]
-- [[#email][email]]
-  - [[#guix-packages][GUIX packages]]
 - [[#app][app]]
   - [[#elfeed][Elfeed]]
     - [[#elfeed-tube][Elfeed Tube]]
@@ -100,9 +98,7 @@ I have the time to configure Emacs to my liking. This is my config.
 - [[#tramp][Tramp]]
 - [[#spellcheck][Spellcheck]]
   - [[#grammar][Grammar]]
-    - [[#guix-packages][Guix Packages]]
   - [[#spelling][Spelling]]
-    - [[#guix-packages][Guix Packages]]
 :END:
 
 * Faster Startup 
@@ -1342,18 +1338,6 @@ emacs-pdf-tools
     "api" 'password-store-insert)
 #+end_src
 
-* email
-
-#+begin_src emacs-lisp
-  (use-package mu4e
-    :straight nil)
-#+end_src
-
-** GUIX packages
-
-#+begin_src scheme
-emacs-mu4e-alert
-#+end_src
 
 * app
 
@@ -1475,16 +1459,10 @@ This app uses ctable
 
 #+begin_src emacs-lisp
   (use-package writegood-mode
-    :straight nil
     :config 
     (global-set-key "\C-cg" 'writegood-mode))
 #+end_src
 
-*** Guix Packages
-
-#+begin_src scheme
-emacs-writegood-mode
-#+end_src
 
 ** Spelling
 
@@ -1492,16 +1470,11 @@ Tasing you for misspelling mispelling
 
 #+begin_src emacs-lisp
   (use-package flyspell-correct
-    :straight nil
     :after flyspell
     :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
 #+end_src 
 
 
-*** Guix Packages
-#+begin_src scheme
-"emacs-flyspell-correct"
-#+end_src
 
 
 

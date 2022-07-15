@@ -946,9 +946,6 @@
   "app" 'password-store-copy
   "api" 'password-store-insert)
 
-(use-package mu4e
-  :straight nil)
-
 (use-package elfeed-tube
   :straight (:host github :repo "karthink/elfeed-tube")
   :after elfeed
@@ -1022,11 +1019,9 @@
 (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
 
 (use-package writegood-mode
-  :straight nil
   :config 
   (global-set-key "\C-cg" 'writegood-mode))
 
 (use-package flyspell-correct
-  :straight nil
   :after flyspell
   :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
