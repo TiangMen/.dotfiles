@@ -9,6 +9,8 @@
   (gnu packages)
   (gnu services)
   (guix gexp)
+  (gnu home services)
+  (gnu packages shells)
   (gnu home services shells))
 
 (home-environment
@@ -200,4 +202,13 @@
               (bash-profile
                 (list (local-file
                         "/home/user/src/guix-config/.bash_profile"
-                        "bash_profile"))))))))
+                        "bash_profile")))))
+
+          (simple-service 'some-useful-env-vars-service
+          		  home-environment-variables-service-type
+          		  `(("GUIX_PROFILE" . "$HOME/.guix-profile")
+			    ("PATH" . "$PATH:$HOME/go/bin:$HOME/.local/bin")
+                            ("CC" . "gcc")
+                            ("XDG_DATA_DIRS" . "/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share:XDG_DATA_DIRS")))
+	  )))
+
