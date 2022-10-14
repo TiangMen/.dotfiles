@@ -3,20 +3,25 @@
 ;; specifies package names.  To reproduce the exact same profile, you also
 ;; need to capture the channels being used, as returned by "guix describe".
 ;; See the "Replicating Guix" section in the manual.
-
+(use-modules (gnu home services))
 (use-modules
   (gnu home)
   (gnu packages)
   (gnu services)
   (guix gexp)
-  (gnu home services)
-  (gnu packages shells)
   (gnu home services shells))
 
 (home-environment
   (packages
     (map (compose list specification->package+output)
-         (list "libtool"
+         (list 
+               "gcc-toolchain"
+               "gcc"
+               "gnome-screenshot"
+               "emacs-aio"
+               "python-cookies"
+               "make"
+               "libtool"
                "ripgrep"
                "unzip"
                "zip"
@@ -24,14 +29,13 @@
                "emacs-pdf-tools"
                "imagemagick"
                "emacs-info-plus"
-               "ledger"
                "ncurses"
+               "rust-trust-dns-openssl"
                "emacs-log4e"
                "emacs-pyvenv"
                "emacs-python-environment"
                "python"
                "node"
-               "musl"
                "emacs-ctable"
                "emacs-ledger-mode"
                "sicp"
@@ -49,7 +53,6 @@
                "emacs-flymake-shellcheck"
                "clang"
                "emacs-ccls"
-               "ccls"
                "nss-certs"
                "emacs-org-roam"
                "emacs-cdlatex"
@@ -95,15 +98,11 @@
                "zathura"
                "img2pdf"
                "curl"
-               "agg"
+               "opendoas"
                "python-qtpy"
                "python-matplotlib"
                "git"
                "youtube-dl"
-               "gst-libav"
-               "gst-plugins-ugly"
-               "gst-plugins-bad"
-               "gst-plugins-good"
                "pulseaudio"
                "emacs-pulseaudio-control"
                "pavucontrol"
@@ -116,7 +115,6 @@
                "syncthing-gtk"
                "polybar"
                "libptytty"
-               "bison"
                "linux-pam"
                "xsecurelock"
                "xclip"
@@ -125,7 +123,6 @@
                "pinentry"
                "password-store"
                "isync"
-               "zlib"
                "cairo"
                "pkg-config"
                "libpng"
@@ -137,10 +134,8 @@
                "emacs-pinentry"
                "libva-utils"
                "intel-vaapi-driver"
-               "gst-plugins-base"
                "gstreamer"
                "shared-mime-info"
-               "glib:bin"
                "gtk+:bin"
                "xdg-dbus-proxy"
                "xdg-utils"
@@ -156,7 +151,6 @@
                "python-pip"
                "libvterm"
                "xhost"
-               "gcc-toolchain"
                "font-fira-code"
                "cmake"
                "emacs-vterm"
@@ -178,18 +172,17 @@
                   ("ls" . "ls -p --color=auto")))
               (bashrc
                 (list (local-file
-                        "/home/user/src/guix-config/.bashrc"
+                        ".bashrc"
                         "bashrc")))
               (bash-profile
                 (list (local-file
-                        "/home/user/src/guix-config/.bash_profile"
+                        ".bash_profile"
                         "bash_profile")))))
 
           (simple-service 'some-useful-env-vars-service
           		  home-environment-variables-service-type
           		  `(("GUIX_PROFILE" . "$HOME/.guix-profile")
-			    ("PATH" . "$PATH:$HOME/go/bin:$HOME/.local/bin")
+			    ("PATH" . "$PATH:$HOME/go/bin:$HOME/.local/bin:$HOME/.cargo/bin")
                             ("CC" . "gcc")
                             ("XDG_DATA_DIRS" . "/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share:XDG_DATA_DIRS")))
 	  )))
-

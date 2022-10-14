@@ -258,6 +258,9 @@
   :config
   (evil-collection-init))
 
+(use-package evil-tutor
+  :straight t)
+
 (use-package key-chord
   :straight nil
   :config 
@@ -308,17 +311,17 @@
   (add-hook 'sh-mode-hook 'flymake-shellcheck-load))
 
 (defun my/autoinsert-yas-expand()
-    "Replace text in yasnippet template."
-    (yas/expand-snippet (buffer-string) (point-min) (point-max)))
+  "Replace text in yasnippet template."
+  (yas/expand-snippet (buffer-string) (point-min) (point-max)))
 
 (custom-set-variables
-    '(auto-insert 'other)
-    '(auto-insert-directory "~/Templates/")
-    '(auto-insert-alist '((("\\.sh\\'" . "Shell script") . ["template.sh" my/autoinsert-yas-expand])
-                            (("\\.el\\'" . "Emacs Lisp") . ["template.el" my/autoinsert-yas-expand])
-                            (("\\.py\\'" . "Python script") . ["template.py" my/autoinsert-yas-expand])
-                            (("[mM]akefile\\'" . "Makefile") . ["Makefile" my/autoinsert-yas-expand])
-                            )))
+ '(auto-insert 'other)
+ '(auto-insert-directory "~/Templates/")
+ '(auto-insert-alist '((("\\.sh\\'" . "Shell script") . ["template.sh" my/autoinsert-yas-expand])
+                       (("\\.el\\'" . "Emacs Lisp") . ["template.el" my/autoinsert-yas-expand])
+                       (("\\.py\\'" . "Python script") . ["template.py" my/autoinsert-yas-expand])
+                       (("[mM]akefile\\'" . "Makefile") . ["Makefile" my/autoinsert-yas-expand])
+                       )))
 
 (use-package flymake-shellcheck
   :straight t
@@ -400,7 +403,7 @@
             (setq indent-tabs-mode 1)))
 
 (add-hook 'go-mode-hook (lambda ()
-                        (local-set-key (kbd "C-c C-r") 'go-remove-unused-imports)))
+                          (local-set-key (kbd "C-c C-r") 'go-remove-unused-imports)))
 
 (use-package yasnippet-snippets
   :straight t)
@@ -419,12 +422,12 @@
   :diminish flycheck-mode
   :init
   (setq flycheck-check-syntax-automatically '(save new-line)
-	flycheck-idle-change-delay 5.0
-	flycheck-display-errors-delay 0.9
-	flycheck-highlighting-mode 'symbols
-	flycheck-indication-mode 'left-fringe
-	flycheck-standard-error-navigation t
-	flycheck-deferred-syntax-check nil)
+        flycheck-idle-change-delay 5.0
+        flycheck-display-errors-delay 0.9
+        flycheck-highlighting-mode 'symbols
+        flycheck-indication-mode 'left-fringe
+        flycheck-standard-error-navigation t
+        flycheck-deferred-syntax-check nil)
   )
 
 ;; This is needed as of Org 9.2
@@ -437,6 +440,8 @@
 (org-babel-do-load-languages
  'org-babel-load-languages
  '((emacs-lisp . t)
+   (dot . t)
+   (latex . t)
    (python . t)))
 
 (setq org-confirm-babel-evaluate nil)
@@ -526,118 +531,118 @@
   :hook (org-mode . efs/org-mode-visual-fill))
 
 (defun efs/org-mode-setup ()
-     (org-indent-mode)
-     (variable-pitch-mode 1)
-     (visual-line-mode 1))
+  (org-indent-mode)
+  (variable-pitch-mode 1)
+  (visual-line-mode 1))
 
-   (use-package org :straight (:type built-in)
-     :commands (org-capture org-agenda)
-     :hook (org-mode . efs/org-mode-setup)
-     (org-mode . flyspell-mode)
-     :config
+(use-package org :straight (:type built-in)
+  :commands (org-capture org-agenda)
+  :hook (org-mode . efs/org-mode-setup)
+  (org-mode . flyspell-mode)
+  :config
 
-     (setq org-directory "~/Projects/Code/OrgFiles")
-     (setq org-agenda-files '("Tasks.org" "Birthdays.org"))
+  (setq org-directory "~/Projects/Code/OrgFiles")
+  (setq org-agenda-files '("Tasks.org" "Birthdays.org"))
 
 
-     (setq org-agenda-start-with-log-mode t)
-     (setq org-log-done 'time)
-     (setq org-log-into-drawer t)
+  (setq org-agenda-start-with-log-mode t)
+  (setq org-log-done 'time)
+  (setq org-log-into-drawer t)
 
-     (setq org-todo-keywords
-	   '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
-	     (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
-     ;; Configure custom agenda views
-     (setq org-tag-alist
-	   '((:startgroup)
-					   ; Put mutually exclusive tags here
-	     (:endgroup)
-	     ("@errand" . ?E)
-	     ("@home" . ?H)
-	     ("@work" . ?W)
-	     ("agenda" . ?a)
-	     ("planning" . ?p)
-	     ("publish" . ?P)
-	     ("batch" . ?b)
-	     ("note" . ?n)
-	     ("idea" . ?i)))
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
+          (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
+  ;; Configure custom agenda views
+  (setq org-tag-alist
+        '((:startgroup)
+                                        ; Put mutually exclusive tags here
+          (:endgroup)
+          ("@errand" . ?E)
+          ("@home" . ?H)
+          ("@work" . ?W)
+          ("agenda" . ?a)
+          ("planning" . ?p)
+          ("publish" . ?P)
+          ("batch" . ?b)
+          ("note" . ?n)
+          ("idea" . ?i)))
 
-     (setq org-agenda-custom-commands
-	   '(("d" "Dashboard"
-	      ((agenda "" ((org-deadline-warning-days 7)))
-	       (todo "NEXT"
-		     ((org-agenda-overriding-header "Next Tasks")))
-	       (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
+  (setq org-agenda-custom-commands
+        '(("d" "Dashboard"
+           ((agenda "" ((org-deadline-warning-days 7)))
+            (todo "NEXT"
+                  ((org-agenda-overriding-header "Next Tasks")))
+            (tags-todo "agenda/ACTIVE" ((org-agenda-overriding-header "Active Projects")))))
 
-	     ("n" "Next Tasks"
-	      ((todo "NEXT"
-		     ((org-agenda-overriding-header "Next Tasks")))))
+          ("n" "Next Tasks"
+           ((todo "NEXT"
+                  ((org-agenda-overriding-header "Next Tasks")))))
 
-	     ("W" "Work Tasks" tags-todo "+work-email")
+          ("W" "Work Tasks" tags-todo "+work-email")
 
-	     ;; Low-effort next actions
-	     ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
-	      ((org-agenda-overriding-header "Low Effort Tasks")
-	       (org-agenda-max-todos 20)
-	       (org-agenda-files org-agenda-files)))
+          ;; Low-effort next actions
+          ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&+Effort>0"
+           ((org-agenda-overriding-header "Low Effort Tasks")
+            (org-agenda-max-todos 20)
+            (org-agenda-files org-agenda-files)))
 
-	     ("w" "Workflow Status"
-	      ((todo "WAIT"
-		     ((org-agenda-overriding-header "Waiting on External")
-		      (org-agenda-files org-agenda-files)))
-	       (todo "REVIEW"
-		     ((org-agenda-overriding-header "In Review")
-		      (org-agenda-files org-agenda-files)))
-	       (todo "PLAN"
-		     ((org-agenda-overriding-header "In Planning")
-		      (org-agenda-todo-list-sublevels nil)
-		      (org-agenda-files org-agenda-files)))
-	       (todo "BACKLOG"
-		     ((org-agenda-overriding-header "Project Backlog")
-		      (org-agenda-todo-list-sublevels nil)
-		      (org-agenda-files org-agenda-files)))
-	       (todo "READY"
-		     ((org-agenda-overriding-header "Ready for Work")
-		      (org-agenda-files org-agenda-files)))
-	       (todo "ACTIVE"
-		     ((org-agenda-overriding-header "Active Projects")
-		      (org-agenda-files org-agenda-files)))
-	       (todo "COMPLETED"
-		     ((org-agenda-overriding-header "Completed Projects")
-		      (org-agenda-files org-agenda-files)))
-	       (todo "CANC"
-		     ((org-agenda-overriding-header "Cancelled Projects")
-		      (org-agenda-files org-agenda-files)))))))
-     (setq org-ellipsis " ▾")
+          ("w" "Workflow Status"
+           ((todo "WAIT"
+                  ((org-agenda-overriding-header "Waiting on External")
+                   (org-agenda-files org-agenda-files)))
+            (todo "REVIEW"
+                  ((org-agenda-overriding-header "In Review")
+                   (org-agenda-files org-agenda-files)))
+            (todo "PLAN"
+                  ((org-agenda-overriding-header "In Planning")
+                   (org-agenda-todo-list-sublevels nil)
+                   (org-agenda-files org-agenda-files)))
+            (todo "BACKLOG"
+                  ((org-agenda-overriding-header "Project Backlog")
+                   (org-agenda-todo-list-sublevels nil)
+                   (org-agenda-files org-agenda-files)))
+            (todo "READY"
+                  ((org-agenda-overriding-header "Ready for Work")
+                   (org-agenda-files org-agenda-files)))
+            (todo "ACTIVE"
+                  ((org-agenda-overriding-header "Active Projects")
+                   (org-agenda-files org-agenda-files)))
+            (todo "COMPLETED"
+                  ((org-agenda-overriding-header "Completed Projects")
+                   (org-agenda-files org-agenda-files)))
+            (todo "CANC"
+                  ((org-agenda-overriding-header "Cancelled Projects")
+                   (org-agenda-files org-agenda-files)))))))
+  (setq org-ellipsis " ▾")
 
-     (setq org-capture-templates
-	   `(("t" "Tasks / Projects")
-	     ("tt" "Task" entry (file+olp "~/Projects/Code/OrgFiles/Tasks.org" "Inbox")
-	      "* TODO %?\n  %U\n  %a\n  %i" :empty-lines 1)
+  (setq org-capture-templates
+        `(("t" "Tasks / Projects")
+          ("tt" "Task" entry (file+olp "~/Projects/Code/OrgFiles/Tasks.org" "Inbox")
+           "* TODO %?\n  %U\n  %a\n  %i" :empty-lines 1)
 
-	     ("j" "Journal Entries")
-	     ("jj" "Journal" entry
-	      (file+olp+datetree "~/Projects/Code/OrgFiles/Journal.org")
-	      "\n* %<%I:%M %p> - Journal :journal:\n\n%?\n\n"
-	      ;; ,(dw/read-file-as-string "~/Notes/Templates/Daily.org")
-	      :clock-in :clock-resume
-	      :empty-lines 1)
-	     ("jm" "Meeting" entry
-	      (file+olp+datetree "~/Projects/Code/OrgFiles/Journal.org")
-	      "* %<%I:%M %p> - %a :meetings:\n\n%?\n\n"
-	      :clock-in :clock-resume
-	      :empty-lines 1)
+          ("j" "Journal Entries")
+          ("jj" "Journal" entry
+           (file+olp+datetree "~/Projects/Code/OrgFiles/Journal.org")
+           "\n* %<%I:%M %p> - Journal :journal:\n\n%?\n\n"
+           ;; ,(dw/read-file-as-string "~/Notes/Templates/Daily.org")
+           :clock-in :clock-resume
+           :empty-lines 1)
+          ("jm" "Meeting" entry
+           (file+olp+datetree "~/Projects/Code/OrgFiles/Journal.org")
+           "* %<%I:%M %p> - %a :meetings:\n\n%?\n\n"
+           :clock-in :clock-resume
+           :empty-lines 1)
 
-	     ("w" "Workflows")
-	     ("we" "Checking Email" entry (file+olp+datetree "~/Projects/Code/OrgFiles/Journal.org")
-	      "* Checking Email :email:\n\n%?" :clock-in :clock-resume :empty-lines 1)
+          ("w" "Workflows")
+          ("we" "Checking Email" entry (file+olp+datetree "~/Projects/Code/OrgFiles/Journal.org")
+           "* Checking Email :email:\n\n%?" :clock-in :clock-resume :empty-lines 1)
 
-	     ("m" "Metrics Capture")
-	     ("mw" "Weight" table-line (file+headline "~/Projects/Code/OrgFiles/Metrics.org" "Weight")
-	      "| %U | %^{Weight} | %^{Notes} |" :kill-buffer t)))
+          ("m" "Metrics Capture")
+          ("mw" "Weight" table-line (file+headline "~/Projects/Code/OrgFiles/Metrics.org" "Weight")
+           "| %U | %^{Weight} | %^{Notes} |" :kill-buffer t)))
 
-;     (efs/org-font-setup)
- )
+                                        ;     (efs/org-font-setup)
+  )
 
 (use-package org-roam
   :straight nil
@@ -788,6 +793,8 @@
 (use-package ledger-mode
   :straight nil)
 
+(use-package haskell-mode)
+
 (use-package dired
   :straight nil)
 
@@ -851,6 +858,9 @@
   :commands vterm
   :config
   (setq vterm-max-scrollback 10000))
+
+(use-package rustic
+  :straight t)
 
 (use-package projectile
   :straight t
